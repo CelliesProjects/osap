@@ -16,7 +16,7 @@ A very capable audio player with:
 
 ## Mobile phone UI screenshot
 
-![image](https://github.com/user-attachments/assets/e0d90988-41f7-4f40-af63-05d571bbb91f)
+![image](https://github.com/user-attachments/assets/6f5ec529-6386-45e2-9438-dc032500af85)
 
 # Features
 
