@@ -1,0 +1,9 @@
+.pio
+.vscode/
+src/secrets.h
+src/secrets.hpp
+src/webui/*.gz
+src/generated/*
+*.pls
+src/*.pls
+include/*.pls

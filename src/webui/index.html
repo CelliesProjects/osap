@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OS Audio Player</title>
+    <meta name="description" content="OS Audio Player UI">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/icons/favicon.svg">
+    <style>
+        html,
+        body {
+            background: #000;
+            margin: 0;
+            padding: 0;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: whitesmoke;
+            font-size: large;
+        }
+
+        #app {
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+        }
+
+        #locationbar {
+            margin: 0;
+            padding: 2px;
+            background: #222;
+            color: #fff;
+        }
+
+        .buttonbar {
+            display: flex;
+            gap: 4px;
+            background: #222;
+            padding: 0 0 0 5px;
+            margin-top: -1px;
+        }
+
+        .tabbtn {
+            padding: 2px 25px;
+            background: #666;
+            color: #fff;
+            border: 1px solid transparent;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            margin: 0 5px;
+        }
+
+        .tabbtn.active {
+            background: #111;
+            border-color: #666;
+            border-bottom: none;
+        }
+
+        .tabbtn.notify {
+            background: #2b6cb0;
+            border-color: #4a90e2;
+        }
+
+        .tabbtn.notify:hover {
+            background: #3b7fd1;
+        }
+
+        .tabbtn img {
+            height: 16px;
+            width: 16px;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        #content {
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* split layout */
+        .split {
+            display: flex;
+            height: 100%;
+        }
+
+        /* LEFT: switchable tabs */
+        #leftpane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #leftpane,
+        #rightpane {
+            min-height: 0;
+        }
+
+        /* RIGHT: playlist (fixed 50%) */
+        #rightpane {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #444;
+        }
+
+        /* playlist content */
+        #PLAYLIST {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            background: #111;
+        }
+
+        /* ===== TABS ===== */
+        .tabcontent {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            background: #111;
+        }
+
+        /* hide scrollbars but keep scrolling */
+        .tabcontent,
+        #PLAYLIST {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabcontent::-webkit-scrollbar,
+        #PLAYLIST::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tabcontent.active {
+            display: block;
+        }
+
+        /* folder or list items */
+        .listitem {
+            padding: 6px 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* text takes all space */
+        .listitem .label {
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            opacity: 0.95;
+        }
+
+        /* play button on right */
+        .playbtn {
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            background-image: url("/icons/play.svg");
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.6;
+            margin-left: 8px;
+        }
+
+        .playbtn:hover {
+            opacity: 1;
+        }
+
+        .deletebtn {
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            background-image: url("/icons/delete.svg");
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.6;
+        }
+
+        .deletebtn.left {
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        .deletebtn:hover {
+            opacity: 1;
+        }
+
+        .listitem.active {
+            background: #777;
+        }
+
+        .listitem.info {
+            cursor: auto;
+        }
+
+        .listitem:hover {
+            background: #444;
+        }
+
+        /* ===== ICON (left side) ===== */
+        .listitem::before {
+            content: "";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            flex-shrink: 0;
+            opacity: 0.5;
+        }
+
+        /* icon per type */
+        .listitem.dir::before {
+            background-image: url("/icons/folder.svg");
+        }
+
+        .listitem.file::before {
+            background-image: url("/icons/audiotrack.svg");
+        }
+
+        .listitem.radio::before {
+            background-image: url("/icons/radio.svg");
+        }
+
+        .listitem.favorite::before {
+            background-image: url("/icons/favorite.svg");
+        }
+
+        .listitem.search::before {
+            background-image: url("/icons/search.svg");
+        }
+
+        .listitem.info::before {
+            background-image: url("/icons/info.svg");
+        }
+
+        /* ===== hide play button for info rows ===== */
+        .listitem.info .playbtn {
+            display: none;
+        }
+
+        .listitem.page {
+            background: #1a1a1a;
+            font-style: italic;
+        }
+
+        .listitem.page:hover {
+            background: #2a2a2a;
+        }
+
+        .listitem.page::before {
+            background-image: url("/icons/search.svg");
+            opacity: 0.35;
+        }
+
+        /* ===== BOTTOM UI ===== */
+        #searchbar {
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            background: #222;
+        }
+
+        /* input takes all space */
+        #searchinput {
+            text-align: center;
+            flex: 1;
+            border: none;
+            outline: none;
+            background: #222;
+            color: #fff;
+            font: inherit;
+            height: stretch;
+            padding: 6px 10px;
+        }
+
+        /* button on the right */
+        #searchbtn {
+            width: 200px;
+            height: 100%;
+            border: none;
+            background: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* icon */
+        #searchbtn img {
+            pointer-events: none;
+        }
+
+        /* hover feedback */
+        #searchbtn:hover {
+            background: #888;
+        }
+
+        /* controlpanel */
+        #controlpanel {
+            z-index: 1100;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 6px 10px;
+            background: #000;
+            color: #fff;
+        }
+
+        /* controls row */
+        #controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* icons */
+        #controls img {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            opacity: 0.85;
+        }
+
+        #controls img:hover {
+            opacity: 1;
+        }
+
+        /* volume slider */
+        #volume {
+            flex: 1;
+            min-width: 100px;
+            max-width: 200px;
+            height: 24px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        /* track */
+        #volume::-webkit-slider-runnable-track {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+        }
+
+        #volume::-moz-range-track {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+        }
+
+        /* thumb */
+        #volume::-webkit-slider-thumb {
+            -webkit-appearance: none;
+
+            width: 18px;
+            height: 18px;
+
+            margin-top: -5px;
+
+            background: #bbb;
+            border-radius: 4px;
+            border: none;
+        }
+
+        #volume::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+
+            background: #bbb;
+            border-radius: 4px;
+            border: none;
+        }
+
+        /* hover */
+        #volume:hover::-webkit-slider-thumb {
+            background: #ddd;
+        }
+
+        #volume:hover::-moz-range-thumb {
+            background: #ddd;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.90);
+            display: none;
+            z-index: 1000;
+
+            justify-content: center;
+            align-items: center;
+        }
+
+        #overlay.active {
+            display: flex;
+        }
+
+        #overlayContent {
+            width: 90%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        #aboutLink {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        #aboutLink:hover {
+            opacity: 1;
+        }
+
+        #aboutDialog {
+            display: none;
+            position: absolute;
+            max-width: 700px;
+            background: #111;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 2px;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        #aboutDialog.active {
+            display: block;
+        }
+
+        #aboutDialog a,
+        #aboutDialog a:visited {
+            color: inherit;
+        }
+
+        #nowPlayingTitle {
+            font-size: 2rem;
+            color: white;
+            text-align: center;
+            overflow-wrap: break-word;
+            width: auto;
+        }
+
+        #overlayNowPlayingRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        #progressbar {
+            display: none;
+            width: 90%;
+            height: 32px;
+            background: #222;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #progressfill {
+            width: 25%;
+            height: 100%;
+            background: #888;
+        }
+
+        #favoriteBtn {
+            width: 48px;
+            height: 48px;
+            display: none;
+        }
+
+        #favoriteBtn:hover {
+            opacity: 1;
+
+        }
+
+        /* toast messages and errors */
+        #toastContainer {
+            align-items: flex-end;
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            text-align: right;
+            max-width: calc(100vw / 2);
+            padding: 10px 14px;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0;
+            transform: translateY(-25px);
+            transition: opacity 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.msg {
+            background: #2e7d32;
+        }
+
+        .toast.err {
+            background: #c62828;
+        }
+
+        /* misc css*/
+        .noselect {
+            user-select: none;
+        }
+
+        /* when in mobile landscape, search is hidden */
+        @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+
+            #searchbar {
+                display: none;
+            }
+
+            #controlpanel {
+                padding-top: 4px;
+                padding-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+
+<body class="noselect">
+    <div id="app">
+
+        <p id="locationbar">&nbsp;</p>
+
+        <div class="buttonbar">
+            <button class="tabbtn" data-tab="LIBRARY"><img src="/icons/folder.svg" alt="Library"></button>
+            <button class="tabbtn" data-tab="WEBRADIO"><img src="/icons/radio.svg" alt="Radio"></button>
+            <button class="tabbtn" data-tab="FAVORITES"><img src="/icons/favorite.svg" alt="Favorite"></button>
+            <button class="tabbtn" data-tab="SEARCH"><img src="/icons/search.svg" alt="Search"></button>
+        </div>
+
+        <div id="content">
+            <div class="split">
+
+                <!-- LEFT SIDE (switchable tabs) -->
+                <div id="leftpane">
+                    <div id="LIBRARY" class="tabcontent">
+                        <div class="listitem info">
+                            <span class="label">No sdcard found</span>
+                        </div>
+                    </div>
+
+                    <div id="WEBRADIO" class="tabcontent active">
+                        <div class="listitem info">
+                            <span class="label">Not connected</span>
+                        </div>
+                    </div>
+
+                    <div id="FAVORITES" class="tabcontent">
+                        <div class="listitem info">
+                            <span class="label">Not connected</span>
+                        </div>
+                    </div>
+
+                    <div id="SEARCH" class="tabcontent">
+                        <div class="listitem info">
+                            <span class="label">No results yet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE (always visible) -->
+                <div id="rightpane">
+                    <div id="PLAYLIST">
+                        <div class="listitem info">
+                            <span class="label">Not connected</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="searchbar">
+            <input id="searchinput" type="text" placeholder="Start a new search">
+            <button id="searchbtn">
+                <img src="/icons/search.svg" alt="Search">
+            </button>
+        </div>
+
+        <div id="controlpanel">
+            <div id="controls">
+                <img id="prevbttn" src="/icons/previous.svg" alt="Previous">
+                <img id="infobttn" src="/icons/info.svg" alt="Info">
+                <img id="nextbttn" src="/icons/next.svg" alt="Next">
+                <input id="volume" type="range" min="0" max="100" value="100">
+                <img id="deletebttn" src="/icons/delete.svg" alt="Delete">
+            </div>
+        </div>
+
+        <div id="overlay">
+            <div id="aboutLink">About</div>
+            <div id="overlayContent">
+                <div id="aboutDialog">
+                    <h2>OS Audio Player</h2>
+                    <p>{{GIT_VERSION}}</p>
+                    <p>{{BUILD_LAST_MODIFIED}}</p>
+                    <p>Source code: <a href="https://github.com/celliesprojects/osap" target="_blank">GitHub</a></p>
+                </div>
+
+                <div id="overlayNowPlayingRow">
+                    <img id="favoriteBtn" src="/icons/addfavorite.svg" alt="Save as Favorite">
+                    <div id="nowPlayingTitle">Connecting...</div>
+                </div>
+
+                <div id="progressbar">
+                    <div id="progressfill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastContainer"></div>
+
+    </div>
+
+    <!-- source tab selection -->
+    <script>
+        (() => {
+            const tabs = document.querySelectorAll(".tabbtn");
+            const contents = document.querySelectorAll(".tabcontent");
+
+            tabs.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    contents.forEach(tab => tab.classList.remove("active"));
+                    tabs.forEach(b => b.classList.remove("active"));
+
+                    const tabId = btn.dataset.tab;
+                    document.getElementById(tabId).classList.add("active");
+                    btn.classList.remove("notify");
+                    btn.classList.add("active");
+                });
+            });
+
+            document.querySelector('[data-tab="WEBRADIO"]').classList.add("active");
+        })();
+    </script>
+
+    <!-- display render functions -->
+    <script>
+
+        function updateCurrent(index) {
+            currentIndex = index;
+
+            const items = document.querySelectorAll("#PLAYLIST .listitem");
+            const favoriteBtn = document.getElementById("favoriteBtn");
+
+            items.forEach(el => el.classList.remove("active"));
+
+            // highlight active playlist item
+            if (index >= 0 && index < items.length) {
+                items[index].classList.add("active");
+            }
+
+            // update overlay title
+            const title = document.getElementById("nowPlayingTitle");
+
+            if (index >= 0 && playlistItems[index]) {
+                const item = playlistItems[index];
+
+                title.textContent = item.name;
+
+                // only allow saving SEARCH items
+                if (item.type === "SEARCH") {
+                    favoriteBtn.style.display = "block";
+                }
+                else {
+                    favoriteBtn.style.display = "none";
+                }
+            }
+            else {
+                title.textContent = "Nothing playing";
+                favoriteBtn.style.display = "none";
+            }
+        }
+
+        function displayPlaylist(raw) {
+            const container = document.getElementById("PLAYLIST");
+            container.innerHTML = "";
+
+            const lines = raw.split("\n").slice(1);
+            const items = [];
+
+            // parse
+            lines.forEach(line => {
+                if (!line.trim()) return;
+
+                const US = "\x1F";
+                const [index, name, type] = line.split(US);
+                items.push({ index: parseInt(index), name, type });
+            });
+
+            playlistItems = items;
+
+            // empty state
+            if (items.length === 0) {
+                container.innerHTML = '<div class="listitem info"><span class="label">Playlist empty</span></div>';
+
+                if (currentIndex >= 0)
+                    updateCurrent(currentIndex);
+
+                return;
+            }
+
+            // map type to css class
+            const typeToClass = {
+                FILE: "file",
+                RADIO: "radio",
+                FAVORITE: "favorite",
+                SEARCH: "search"
+            };
+
+            // build UI
+            items.forEach(item => {
+                const el = document.createElement("div");
+                el.classList.add("listitem");
+
+                const cssClass = typeToClass[item.type] || "file";
+                el.classList.add(cssClass);
+
+                // highlight current
+                if (item.index === currentIndex) {
+                    el.classList.add("active");
+                }
+
+                // label
+                const label = document.createElement("span");
+                label.className = "label";
+                label.textContent = item.name;
+
+                // delete button
+                const deletebtn = document.createElement("span");
+                deletebtn.className = "deletebtn";
+
+                el.appendChild(label);
+                el.appendChild(deletebtn);
+
+                // click -> play this item
+                el.addEventListener("click", () => {
+                    sendWS("PLAY:INDEX:" + item.index);
+                });
+
+                // click -> delete this item
+                deletebtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    sendWS("DELETE:INDEX:" + item.index);
+                });
+
+                container.appendChild(el);
+            });
+        }
+
+        function displayFavorites(raw) {
+            const container = document.getElementById("FAVORITES");
+            container.innerHTML = "";
+
+            const lines = raw.split("\n").slice(1);
+            const valid = lines
+                .filter(line => line.trim())
+                .sort((a, b) =>
+                    a.localeCompare(b, undefined, {
+                        sensitivity: "base"
+                    })
+                );
+
+            if (valid.length === 0) {
+                container.innerHTML = '<div class="listitem info"><span class="label">No favorites found</span></div>';
+                return;
+            }
+
+            // ---- build list ----
+            valid.forEach(name => {
+                const item = document.createElement("div");
+                item.classList.add("listitem", "favorite");
+
+                // delete button
+                const deletebtn = document.createElement("span");
+                deletebtn.className = "deletebtn left";
+
+                // label
+                const label = document.createElement("span");
+                label.className = "label";
+                label.textContent = name;
+
+                // play button
+                const playbtn = document.createElement("span");
+                playbtn.className = "playbtn";
+
+                item.appendChild(deletebtn);
+                item.appendChild(label);
+                item.appendChild(playbtn);
+
+                // delete favorite
+                deletebtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    console.log("Delete favorite:", name);
+                    sendWS(`FAVORITE:DELETE:${name}`);
+                });
+
+                // add to playlist
+                item.addEventListener("click", () => {
+                    console.log("Add favorite:", name);
+                    sendWS(`FAVORITE:ADD:${name}`);
+                });
+
+                // play immediately
+                playbtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    console.log("Play favorite:", name);
+                    sendWS(`FAVORITE:PLAY:${name}`);
+                });
+
+                container.appendChild(item);
+            });
+        }
+
+        function displayPresets(raw) {
+            const container = document.getElementById("WEBRADIO");
+
+            container.innerHTML = "";
+
+            const lines = raw.split("\n").slice(1);
+
+            lines.forEach((name, index) => {
+                if (!name.trim()) return;
+
+                const item = document.createElement("div");
+                item.classList.add("listitem", "radio");
+
+                // label
+                const label = document.createElement("span");
+                label.className = "label";
+                label.textContent = name;
+
+                // play button
+                const playbtn = document.createElement("span");
+                playbtn.className = "playbtn";
+
+                item.appendChild(label);
+                item.appendChild(playbtn);
+
+                item.dataset.index = Number(index);
+
+                item.addEventListener("click", () => {
+                    console.log("Add preset:", index, name);
+                    sendWS("PRESET:ADD:" + index);
+                });
+
+                playbtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+
+                    console.log("Play preset:", index, name);
+                    sendWS("PRESET:PLAY:" + index);
+                });
+
+                container.appendChild(item);
+            });
+        }
+
+        function displaySearchResults(raw) {
+            const container = document.getElementById("SEARCH");
+
+            container.innerHTML = "";
+
+            let count = 0;
+            const lines = raw.split("\n");
+            const header = lines.shift();
+            const [, pageStr, pageSizeStr] = header.split(":");
+            const page = Number(pageStr);
+            const pageSize = Number(pageSizeStr);
+
+            const US = "\x1F";
+
+            // ---- previous button ----
+            if (page > 0) {
+                const prev = document.createElement("div");
+                prev.classList.add("listitem", "page");
+
+                prev.innerHTML =
+                    '<span class="label">Previous results</span>';
+
+                prev.addEventListener("click", () => {
+                    window.searchPrevPage();
+                });
+
+                container.appendChild(prev);
+            }
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+
+                const [name, url] = line.split(US);
+                if (!name || !url)
+                    return;
+
+                count++;
+
+                const item = document.createElement("div");
+                item.classList.add("listitem", "search");
+
+                // ---- label ----
+                const label = document.createElement("span");
+                label.className = "label";
+                label.textContent = name;
+
+                // ---- play button ----
+                const playbtn = document.createElement("span");
+                playbtn.className = "playbtn";
+
+                item.appendChild(label);
+                item.appendChild(playbtn);
+
+                // ---- add to playlist ----
+                item.addEventListener("click", () => {
+                    console.log("Add search result:", name);
+                    sendWS(`SEARCH:ADD:${name}${US}${url}`);
+                });
+
+                // ---- play immediately ----
+                playbtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+
+                    console.log("Play search result:", name);
+                    sendWS(`SEARCH:PLAY:${name}${US}${url}`);
+                });
+
+                container.appendChild(item);
+            });
+
+            // ---- next button ----
+            if (count > pageSize) {
+
+                // remove overflow item
+                container.removeChild(container.lastChild);
+
+                const next = document.createElement("div");
+                next.classList.add("listitem", "page");
+
+                next.innerHTML =
+                    '<span class="label">More results</span>';
+
+                next.addEventListener("click", () => {
+                    window.searchNextPage();
+                });
+
+                container.appendChild(next);
+            }
+
+            // ---- empty state ----
+            if (count === 0) {
+                container.innerHTML =
+                    '<div class="listitem info"><span class="label">Nothing found</span></div>';
+            }
+
+            const searchTabBtn =
+                document.querySelector('.tabbtn[data-tab="SEARCH"]');
+
+            if (!document.getElementById("SEARCH").classList.contains("active")) {
+                searchTabBtn.classList.add("notify");
+            }
+
+            // ---- restore search UI ----
+            if (window.restoreSearchUI)
+                window.restoreSearchUI();
+        }        
+    </script>
+
+    <!-- file browser stuff -->
+    <script>
+        let folderBusy = false;
+
+        function displayChunkedFolderData(msg) {
+            const lines = msg.split("\n");
+            const header = lines.shift();
+            const path = header.substring(5);
+
+            document.getElementById("locationbar").textContent = path;
+
+            const container = document.getElementById("LIBRARY");
+
+            if (!container.dataset.path || container.dataset.path !== path) {
+                container.innerHTML = "";
+                container.dataset.path = path;
+
+                if (path !== "/") {
+                    const up = document.createElement("div");
+                    up.classList.add("listitem", "dir");
+                    up.textContent = "..";
+
+                    up.addEventListener("click", () => {
+                        if (folderBusy) {
+                            showToast("Please wait, folder loading", "err");
+                            return;
+                        }
+
+                        folderBusy = true;
+                        sendWS(`REQ:LIST:${parentPath(path)}`);
+                    });
+
+                    container.appendChild(up);
+                }
+            }
+
+            for (const line of lines) {
+                if (!line) continue;
+
+                const type = line[0];
+                const name = line.substring(2);
+
+                const item = createFolderItem(type, name, path);
+                container.appendChild(item);
+            }
+        }
+
+        function createFolderItem(type, name, path) {
+            const el = document.createElement("div");
+
+            el.classList.add("listitem");
+            el.classList.add(type === "D" ? "dir" : "file");
+
+            // build structure
+            const label = document.createElement("span");
+            label.className = "label";
+            label.textContent = name;
+
+            const playbtn = document.createElement("span");
+            playbtn.className = "playbtn";
+
+            el.appendChild(label);
+            el.appendChild(playbtn);
+
+            const fullPath = joinPath(path, name);
+
+            // main click (row)
+            el.addEventListener("click", () => {
+                if (folderBusy) {
+                    showToast("Please wait, folder loading", "err");
+                    return;
+                }
+
+                if (type === "D") {
+                    folderBusy = true;
+                    sendWS(`REQ:LIST:${fullPath}`);
+                } else {
+                    sendWS(`LIBRARY:ADD:${fullPath}`);
+                }
+            });
+
+            // play button click (separate!)
+            playbtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+
+                if (type === "D") {
+                    // optional: play folder 
+                    sendWS(`LIBRARY:PLAY:${fullPath}`);
+                } else {
+                    sendWS(`LIBRARY:PLAY:${fullPath}`);
+                }
+            });
+
+            return el;
+        }
+
+        function joinPath(base, name) {
+            if (base === "/") return `/${name}`;
+            return `${base}/${name}`;
+        }
+
+        function parentPath(path) {
+            if (!path || path === "/") return "/";
+
+            const parts = path.split("/").filter(Boolean);
+            parts.pop();
+
+            return parts.length ? "/" + parts.join("/") : "/";
+        }
+    </script>
+
+    <!-- websocket message handler-->
+    <script>
+        const defaultPlaceholder = "Start a new search";
+        let lastMessageTime = Date.now();
+
+        let currentIndex = -1;
+        let playlistItems = [];
+
+        let progressPos = 0;
+        let progressSize = 0;
+
+        let searchInProgress = false;
+        let volumeDragging = false;
+
+
+        function handleWSMessage(ev) {
+            lastMessageTime = Date.now();
+
+            const raw = ev.data;
+
+            if (raw.startsWith("PING:"))
+                return;
+
+            else if (raw.startsWith("VOLUMESET:")) {
+                if (volumeDragging)
+                    return;
+
+                const v = Number(raw.slice(10));
+
+                if (!Number.isNaN(v))
+                    document.getElementById("volume").value = v;
+
+                return;
+            }
+
+            else if (raw.startsWith("PROGRESS:")) {
+                const [, pos, size] = raw.split(":");
+                progressPos = Number(pos);
+                progressSize = Number(size);
+
+                const pct = progressSize ? (progressPos * 100) / progressSize : 0;
+                document.getElementById("progressfill").style.width = pct + "%";
+                document.getElementById("progressbar").style.display = "block";
+                return;
+            }
+
+            else if (raw.startsWith("LIST:DONE:")) {
+                folderBusy = false;
+                const path = document.getElementById("locationbar");
+                showToast("Folder '" + path.textContent + "' ready", "msg");
+                return;
+            }
+
+            else if (raw.startsWith("LIST:")) {
+                displayChunkedFolderData(raw);
+                return;
+            }
+
+            else if (raw.startsWith("PRESETS:")) {
+                displayPresets(raw);
+                return;
+            }
+
+            else if (raw.startsWith("PLAYLIST:")) {
+                displayPlaylist(raw);
+                return;
+            }
+
+            else if (raw.startsWith("MESSAGE:")) {
+                const msg = raw.slice(8);
+                showToast(msg, "msg");
+                return;
+            }
+
+            else if (raw.startsWith("ERROR:")) {
+                const msg = raw.slice(6);
+                showToast(msg, "err");
+                if (searchInProgress && window.restoreSearchUI) {
+                    document.getElementById("SEARCH").innerHTML = '<div class="listitem info"><span class="label">Search failed</span></div>';
+                    document.getElementById("searchinput").placeholder = defaultPlaceholder;
+                    window.restoreSearchUI();
+                }
+                return;
+            }
+
+            else if (raw.startsWith("CURRENT:")) {
+                resetProgress();
+                const index = Number(raw.slice(8));
+
+                if (!Number.isNaN(index)) {
+                    currentIndex = index;
+                    updateCurrent(index);
+                }
+                return;
+            }
+
+            else if (raw.startsWith("SEARCHRESULT:")) {
+                displaySearchResults(raw);
+                return;
+            }
+
+            else if (raw.startsWith("FAVORITES:")) {
+                displayFavorites(raw);
+                return;
+            }
+
+
+            else if (raw.startsWith("BUFFER:")) {
+                // grab and do nothing to keep console log clean
+                return;
+            }
+
+            else
+                console.log("unhandled ws msg " + raw);
+        }
+    </script>
+
+    <script>
+        function showToast(text, type = "msg") {
+            const container = document.getElementById("toastContainer");
+
+            const el = document.createElement("div");
+            el.className = `toast ${type}`;
+            el.textContent = text;
+            el.onclick = () => el.remove();
+
+            container.appendChild(el);
+
+            // trigger animation
+            requestAnimationFrame(() => el.classList.add("show"));
+
+            const duration = 2100;
+
+            // auto remove
+            setTimeout(() => {
+                el.classList.remove("show");
+                setTimeout(() => el.remove(), 30);
+            }, duration);
+        }        
+    </script>
+
+    <!-- reconnecting websocket -->
+    <script>!function (a, b) { "function" == typeof define && define.amd ? define([], b) : "undefined" != typeof module && module.exports ? module.exports = b() : a.ReconnectingWebSocket = b() }(this, function () { function a(b, c, d) { function l(a, b) { var c = document.createEvent("CustomEvent"); return c.initCustomEvent(a, !1, !1, b), c } var e = { debug: !1, automaticOpen: !0, reconnectInterval: 1e3, maxReconnectInterval: 3e4, reconnectDecay: 1.5, timeoutInterval: 2e3 }; d || (d = {}); for (var f in e) this[f] = "undefined" != typeof d[f] ? d[f] : e[f]; this.url = b, this.reconnectAttempts = 0, this.readyState = WebSocket.CONNECTING, this.protocol = null; var h, g = this, i = !1, j = !1, k = document.createElement("div"); k.addEventListener("open", function (a) { g.onopen(a) }), k.addEventListener("close", function (a) { g.onclose(a) }), k.addEventListener("connecting", function (a) { g.onconnecting(a) }), k.addEventListener("message", function (a) { g.onmessage(a) }), k.addEventListener("error", function (a) { g.onerror(a) }), this.addEventListener = k.addEventListener.bind(k), this.removeEventListener = k.removeEventListener.bind(k), this.dispatchEvent = k.dispatchEvent.bind(k), this.open = function (b) { h = new WebSocket(g.url, c || []), b || k.dispatchEvent(l("connecting")), (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "attempt-connect", g.url); var d = h, e = setTimeout(function () { (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "connection-timeout", g.url), j = !0, d.close(), j = !1 }, g.timeoutInterval); h.onopen = function () { clearTimeout(e), (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "onopen", g.url), g.protocol = h.protocol, g.readyState = WebSocket.OPEN, g.reconnectAttempts = 0; var d = l("open"); d.isReconnect = b, b = !1, k.dispatchEvent(d) }, h.onclose = function (c) { if (clearTimeout(e), h = null, i) g.readyState = WebSocket.CLOSED, k.dispatchEvent(l("close")); else { g.readyState = WebSocket.CONNECTING; var d = l("connecting"); d.code = c.code, d.reason = c.reason, d.wasClean = c.wasClean, k.dispatchEvent(d), b || j || ((g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "onclose", g.url), k.dispatchEvent(l("close"))); var e = g.reconnectInterval * Math.pow(g.reconnectDecay, g.reconnectAttempts); setTimeout(function () { g.reconnectAttempts++, g.open(!0) }, e > g.maxReconnectInterval ? g.maxReconnectInterval : e) } }, h.onmessage = function (b) { (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "onmessage", g.url, b.data); var c = l("message"); c.data = b.data, k.dispatchEvent(c) }, h.onerror = function (b) { (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "onerror", g.url, b), k.dispatchEvent(l("error")) } }, 1 == this.automaticOpen && this.open(!1), this.send = function (b) { if (h) return (g.debug || a.debugAll) && console.debug("ReconnectingWebSocket", "send", g.url, b), h.send(b); throw "INVALID_STATE_ERR : Pausing to reconnect websocket" }, this.close = function (a, b) { "undefined" == typeof a && (a = 1e3), i = !0, h && h.close(a, b) }, this.refresh = function () { h && h.close() } } return a.prototype.onopen = function () { }, a.prototype.onclose = function () { }, a.prototype.onconnecting = function () { }, a.prototype.onmessage = function () { }, a.prototype.onerror = function () { }, a.debugAll = !1, a.CONNECTING = WebSocket.CONNECTING, a.OPEN = WebSocket.OPEN, a.CLOSING = WebSocket.CLOSING, a.CLOSED = WebSocket.CLOSED, a });</script>
+
+    <!-- websocket setup -->
+    <script>
+        (() => {
+            const host = (window.location.hostname === "" || window.location.hostname === "localhost")
+                ? "192.168.0.249"  // set the device ip here then debug this page without uploading to the device
+                : window.location.host;
+            const WS_URL = `ws://${host}/ws`;
+
+            let didInit = false;
+            let ws = null;
+
+            function sendWS(msg) {
+                if (ws && ws.readyState === WebSocket.OPEN)
+                    ws.send(msg);
+                else
+                    showToast("Not connected", "err");
+            }
+
+            window.sendWS = sendWS;
+
+            function connect() {
+                if (ws) return;
+
+                ws = new ReconnectingWebSocket(WS_URL, [], {
+                    maxRetries: Infinity,
+                    reconnectInterval: 1000,
+                });
+
+                ws.addEventListener("open", () => {
+                    console.log("WS connected - requesting initial state");
+                    sendWS("REQ:PRESETS:");
+                    sendWS("REQ:FAVORITES:");
+
+                    if (!didInit) {
+                        didInit = true;
+                        showToast("Reading SD root folder");
+                        sendWS("REQ:LIST:/");
+                    }
+                });
+
+                ws.addEventListener("message", handleWSMessage);
+
+                ws.addEventListener("close", () => {
+                    console.log("WS closed");
+                });
+
+                ws.addEventListener("error", (err) => {
+                    console.log("WS error:", err);
+                });
+            }
+
+            function disconnect() {
+                if (!ws) return;
+                ws.close(1000, "Page hidden");
+                ws = null;
+            }
+
+            setInterval(() => {
+                if (!ws || ws.readyState !== WebSocket.OPEN)
+                    return;
+
+                const age = Date.now() - lastMessageTime;
+                if (age > 5000) {
+                    console.warn("WS stale");
+                    showToast("Disconnected", "err")
+                    favoriteBtn.style.display = "none";
+                    nowPlayingTitle.textContent = "Connecting...";
+
+                    resetProgress();
+                    showOverlay();
+                    ws.refresh();
+                }
+            }, 2000);
+
+            // ---- PAGE LIFECYCLE ----
+
+            // Cold start
+            window.addEventListener("load", () => {
+                connect();
+            });
+
+            // Page hidden (tab switch, minimize, mobile background)
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    favoriteBtn.style.display = "none";
+                    nowPlayingTitle.textContent = "Connecting...";
+
+                    resetProgress();
+                    showOverlay();
+                    disconnect();
+                } else {
+                    connect();
+                }
+            });
+
+            // Page is being unloaded (close / navigate)
+            window.addEventListener("beforeunload", () => {
+                disconnect();
+            });
+        })();
+    </script>
+
+    <!-- search bar -->
+    <script>
+        (() => {
+            const input = document.getElementById("searchinput");
+            const button = document.getElementById("searchbtn");
+            const container = document.getElementById("SEARCH");
+
+            let lastQuery = "";
+            let currentPage = 0;
+
+            function doSearch(reset = true) {
+
+                if (reset) {
+                    const q = input.value.trim();
+
+                    if (!q) return;
+
+                    currentPage = 0;
+                    lastQuery = q;
+
+                    input.value = "";
+                }
+                searchInProgress = true;
+
+                container.innerHTML = '<div class="listitem info">Searching...</div>';
+                input.placeholder = "Searching for '" + lastQuery + "' page " + (Number(1) + currentPage);
+                input.disabled = true;
+                button.disabled = true;
+
+                // ---- send to backend ----
+                sendWS(`SEARCH:${currentPage}:${lastQuery}`);
+            }
+
+            // ---- button click ----
+            button.onclick = () => {
+                doSearch(true);
+            };
+
+            input.addEventListener("focus", () => {
+                input.placeholder = "";
+            });
+
+            input.addEventListener("blur", () => {
+                if (!input.value)
+                    input.placeholder = defaultPlaceholder;
+            });
+
+            // ---- enter key ----
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    button.click();
+                }
+            });
+
+            // ---- pagination buttons ----
+            window.searchNextPage = () => {
+                currentPage++;
+                doSearch(false);
+            };
+
+            window.searchPrevPage = () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    doSearch(false);
+                }
+            };
+
+            window.restoreSearchUI = () => {
+                input.disabled = false;
+                button.disabled = false;
+                searchInProgress = false;
+
+                if (document.activeElement !== input)
+                    input.placeholder = defaultPlaceholder;
+            };
+
+        })();
+    </script>
+
+    <!-- control panel -->
+    <script>
+        document.getElementById("prevbttn").onclick = () => {
+            if (currentIndex > 0)
+                sendWS(`PLAY:INDEX:${currentIndex - 1}`);
+        };
+
+        document.getElementById("nextbttn").onclick = () => {
+            if (currentIndex < playlistItems.length - 1)
+                sendWS(`PLAY:INDEX:${currentIndex + 1}`);
+        };
+
+        document.getElementById("deletebttn").onclick = () => {
+            sendWS("DELETE:PLAYLIST:");
+        };
+
+        const volume = document.getElementById("volume");
+        volume.addEventListener("change", () => {
+            sendWS(`SETVOLUME:${volume.value}`);
+        });
+
+        volume.addEventListener("pointerdown", () => {
+            volumeDragging = true;
+        });
+
+        volume.addEventListener("pointerup", () => {
+            volumeDragging = false;
+        });
+    </script>
+
+    <!-- overlay -->
+    <script>
+        let overlayTimer = null;
+        const overlay = document.getElementById("overlay");
+
+        function showOverlay() {
+            overlay.classList.add("active");
+        }
+
+        function hideOverlay() {
+            overlay.classList.remove("active");
+            resetOverlayTimer();
+        }
+
+        function resetOverlayTimer() {
+            if (overlayTimer) clearTimeout(overlayTimer);
+            overlayTimer = setTimeout(showOverlay, 20000);
+        }
+
+        /* activity events */
+        ["mousemove", "mousedown", "touchstart", "keydown"].forEach(evt => {
+            document.addEventListener(evt, resetOverlayTimer, { passive: true });
+        });
+
+        /* click overlay to hide */
+        overlay.addEventListener("click", () => {
+            if (aboutDialog.classList.contains("active")) {
+                aboutDialog.classList.remove("active");
+                return;
+            }
+            hideOverlay();
+        });
+
+        /* start timer */
+        resetOverlayTimer();
+
+        const infoBtn = document.getElementById("infobttn");
+
+        function toggleOverlay() {
+            const isActive = overlay.classList.toggle("active");
+
+            if (isActive) {
+                // stop idle timer while manually open
+                if (overlayTimer) clearTimeout(overlayTimer);
+            } else {
+                // restart timer when closed
+                resetOverlayTimer();
+            }
+        }
+
+        infoBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleOverlay();
+        });
+
+        document.getElementById("aboutLink").onclick = (e) => {
+            e.stopPropagation();
+            aboutDialog.classList.add("active");
+        };
+
+        const aboutDialog = document.getElementById("aboutDialog");
+
+        aboutDialog.onclick = () => {
+            aboutDialog.classList.remove("active");
+        };
+
+        aboutDialog.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+
+        document.getElementById("favoriteBtn")
+            .addEventListener("click", (e) => {
+                e.stopPropagation();
+
+                if (currentIndex < 0)
+                    return;
+
+                const item = playlistItems[currentIndex];
+                if (!item)
+                    return;
+
+                sendWS(`FAVORITE:SAVE:${currentIndex}`);
+            });
+
+        function resetProgress() {
+            progressPos = 0;
+            progressSize = 0;
+            document.getElementById("progressbar").style.display = "none";
+            document.getElementById("progressfill").style.width = "0%";
+        }
+
+        document.getElementById("progressbar")
+            .addEventListener("click", (e) => {
+                e.stopPropagation();
+
+                if (!progressSize)
+                    return;
+
+                const rect = e.currentTarget.getBoundingClientRect();
+                const fraction = (e.clientX - rect.left) / rect.width;
+                const target = Math.floor(progressSize * fraction);
+
+                sendWS(`JUMPTO:${target}`);
+            });
+    </script>
+
+</body>
+
+</html>
