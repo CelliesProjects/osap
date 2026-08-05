@@ -230,5 +230,5 @@ Current focus:
 
 * Designing a 3D printed hardware enclosure
 
-![Dev hardware](https://github.com/user-attachments/assets/1dfe93a5-e581-4095-91f5-cb0e9c022061)
+![Dev hardware](https://github.com/user-attachments/assets/ee85d075-a17c-4fb4-829e-c1862e4d4326)
 
