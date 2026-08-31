@@ -1131,7 +1131,7 @@ void playerTask(void *param)
 
         if (audio.isRunning())
         {
-            static constexpr auto UPDATE_FREQ_HZ = 8;
+            static constexpr auto UPDATE_FREQ_HZ = 4;
             static constexpr auto DELAY = 1000 / UPDATE_FREQ_HZ;
 
             static size_t prevUsed = -1;
@@ -1154,7 +1154,7 @@ void playerTask(void *param)
 
         if (audio.isRunning() && audio.size())
         {
-            static constexpr auto UPDATE_FREQ_HZ = 5;
+            static constexpr auto UPDATE_FREQ_HZ = 4;
             static constexpr auto DELAY = 1000 / UPDATE_FREQ_HZ;
 
             static size_t prevPos = -1;
@@ -1183,15 +1183,12 @@ void playerTask(void *param)
             streamTitle = "";
         }
 
-        if (!audio.isRunning())
+        static time_t prevHeartbeat = 0;
+        const time_t now = time(nullptr);
+        if (now != prevHeartbeat)
         {
-            static time_t prevHeartbeat = 0;
-            const time_t now = time(nullptr);
-            if (now != prevHeartbeat)
-            {
-                websocketHandler.sendAll("PING:");
-                prevHeartbeat = now;
-            }
+            websocketHandler.sendAll("PING:");
+            prevHeartbeat = now;
         }
     }
 }
