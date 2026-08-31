@@ -19,7 +19,6 @@ constexpr struct source preset[]{
     {"NPO 3FM", "http://icecast.omroep.nl/3fm-bb-mp3"},
     {"NPO Klassiek", "http://icecast.omroep.nl/radio4-bb-mp3"},
     {"NPO Radio5", "http://icecast.omroep.nl/radio5-bb-mp3"},
-    {"NPO Soul&Jazz", "http://icecast.omroep.nl/radio6-bb-mp3"},
     {"Radio Gelderland", "http://d2od87akyl46nm.cloudfront.net/icecast/omroepgelderland/radiogelderland"},
     {"DELTA RADIO NIJMEGEN", "http://streamdelta.lokaalradio.nl:9005/download.mp3"},
     {"Olympia Classics", "http://streams.olympia-streams.nl/classics192"},
