@@ -1456,9 +1456,46 @@
                 sendWS(`PLAY:INDEX:${currentIndex + 1}`);
         };
 
-        document.getElementById("deletebttn").onclick = () => {
-            sendWS("DELETE:PLAYLIST:");
-        };
+        const deleteButton = document.getElementById("deletebttn");
+
+        let deletePressTimer = null;
+        let deleteLongPress = false;
+
+        deleteButton.addEventListener("pointerdown", () => {
+
+            deleteLongPress = false;
+            deletePressTimer = setTimeout(() => {
+                deleteLongPress = true;
+                sendWS("FLUSH:PLAYLIST:");
+            }, 700);
+        });
+
+        deleteButton.addEventListener("pointerup", () => {
+
+            if (deletePressTimer) {
+                clearTimeout(deletePressTimer);
+                deletePressTimer = null;
+            }
+
+            if (!deleteLongPress)
+                sendWS("DELETE:PLAYLIST:");
+        });
+
+        deleteButton.addEventListener("pointerleave", () => {
+
+            if (deletePressTimer) {
+                clearTimeout(deletePressTimer);
+                deletePressTimer = null;
+            }
+        });
+
+        deleteButton.addEventListener("pointercancel", () => {
+
+            if (deletePressTimer) {
+                clearTimeout(deletePressTimer);
+                deletePressTimer = null;
+            }
+        });
 
         const volume = document.getElementById("volume");
         volume.addEventListener("change", () => {
