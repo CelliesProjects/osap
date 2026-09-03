@@ -57,6 +57,14 @@ static void processItems(File &dir)
     }
 }
 
+static void sendWS(PsychicWebSocketClient *c)
+{
+    if (c)
+        msgToClient(webSocketMsg.c_str(), c);
+    else
+        websocketHandler.sendAll(webSocketMsg.c_str());
+}
+
 static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 {
     webSocketMsg = "FAVORITES:\n";
@@ -70,29 +78,22 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 
     if (!dir || !dir.isDirectory())
     {
-        if (c)
-            msgToClient(webSocketMsg.c_str(), c);
-        else
-            websocketHandler.sendAll(webSocketMsg.c_str());
-
+        sendWS(c);
         return;
     }
 
     processItems(dir);
 
-    log_i("favorites webSocketMsg size: %d", webSocketMsg.length());
+    log_d("favorites webSocketMsg size: %d", webSocketMsg.length());
 
-    if (c)
-        msgToClient(webSocketMsg.c_str(), c);
-    else
-        websocketHandler.sendAll(webSocketMsg.c_str());
+    sendWS(c);
 }
 
 void favoritesTask(void *param)
 {
     log_d("favoritesTask running");
 
-    webSocketMsg.reserve(4096);
+    webSocketMsg.reserve(WS_MSG_RESERVED);
 
     while (1)
     {
