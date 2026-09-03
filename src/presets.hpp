@@ -33,7 +33,7 @@ constexpr struct source preset[]{
     {"Record DiscoFunk", "https://radiorecord.hostingradio.ru/discofunk96.aacp"},
     {"RadioEins", "http://radioeins.de/stream"},
     {"Planet 90", "https://planet90.beheerstream.nl/8010/stream"},
-    {"Tekno1", "https://tekno1.radioca.st/;"},
+    {"Tekno1", "http://cressida.shoutca.st:8591/stream/1/"},
     {"Hits 1 Algerie", "https://radio12.pro-fhi.net/listen/whmnrlow/stream"},
     {"bollywooddance", "https://nl4.mystreaming.net/uber/bollywooddance/icecast.audio"},
     {"bollywood", "http://2.mystreaming.net:80/er/bollywood/icecast.audio"},
