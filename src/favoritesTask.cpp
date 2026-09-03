@@ -3,7 +3,7 @@
 static FavoritesRequest req;
 static String webSocketMsg;
 
-static void handleFolder(File &dir)
+static void processItems(File &dir)
 {
     while (true)
     {
@@ -78,7 +78,7 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
         return;
     }
 
-    handleFolder(dir);
+    processItems(dir);
 
     log_i("favorites webSocketMsg size: %d", webSocketMsg.length());
 
