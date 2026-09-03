@@ -1054,6 +1054,34 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         }
         break;
 
+    case PlayerCmdType::FLUSH_PLAYLIST:
+    {
+        const auto *item = playList.currentItem();
+
+        if (!item)
+        {
+            log_w("flush playlist without active item");
+            break;
+        }
+
+        PlaylistItem playing = *item;
+
+        playList.clear();
+
+        if (!playList.add(playing))
+        {
+            log_e("flush playlist: could not add current item");
+            clearCurrentPlaying();
+            broadcastPlaylist();
+            break;
+        }
+
+        playList.setCurrentPlaying(0);
+        broadcastPlaylist();
+
+        break;
+    }
+
     default:
         log_w("unhandled cmd type %d", static_cast<int>(cmd.type));
     }
