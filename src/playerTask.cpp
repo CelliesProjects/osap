@@ -666,9 +666,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     log_d("current playing index %d", playList.currentPlaying());
 
-    const char *ERROR_FAVORITES_BUSY = "ERROR:Favorites queue full";
-
-    switch (cmd.type)
+        switch (cmd.type)
     {
 
     case PlayerCmdType::DELETE_FAVORITE:

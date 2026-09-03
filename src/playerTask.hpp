@@ -24,6 +24,7 @@ extern QueueHandle_t playerQueue;
 extern QueueHandle_t favoritesQueue;
 
 extern const char *ERROR_PLAYER_BUSY;
+extern const char *ERROR_FAVORITES_BUSY;
 extern void broadcastPlayerBusy();
 
 extern SystemState systemState;
