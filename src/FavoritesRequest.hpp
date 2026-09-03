@@ -4,5 +4,5 @@
 
 struct FavoritesRequest
 {
-    PsychicWebSocketClient *client;
+    PsychicWebSocketClient *client = nullptr;
 };
