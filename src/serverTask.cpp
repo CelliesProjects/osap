@@ -486,12 +486,11 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
 
     else if (strncmp(payload, "REQ:FAVORITES", 13) == 0)
     {
-        PlayerCmd cmd{};
-        cmd.type = PlayerCmdType::SEND_FAVORITES;
-        cmd.client = websocketHandler.getClient(request->client()->socket());
+        FavoritesRequest favReq;
+        favReq.client = websocketHandler.getClient(request->client()->socket());
 
-        if (xQueueSend(playerQueue, &cmd, 0) != pdTRUE)
-            broadcastPlayerBusy();
+        if (xQueueSend(favoritesQueue, &favReq, 0) != pdTRUE)
+            broadcastPlayerBusy();        // TODO: there is a erreor for this somewhere
 
         return ESP_OK;
     }
