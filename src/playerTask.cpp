@@ -666,6 +666,8 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     log_d("current playing index %d", playList.currentPlaying());
 
+    const char *ERROR_FAVORITES_BUSY = "ERROR:Favorites queue full";
+
     switch (cmd.type)
     {
 
@@ -673,10 +675,10 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         if (deleteFavorite(cmd))
         {
             FavoritesRequest req{};
-            req.client = nullptr;
+            req.client = nullptr; // nullptr triggers a broadcast to all clients
 
             if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-                msgToClient("ERROR:favorites queue busy", cmd.client);
+                msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
         }
         break;
 
@@ -686,7 +688,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         req.client = cmd.client;
 
         if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-            msgToClient("ERROR:favorites queue busy", cmd.client);
+            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
         break;
     }
 
@@ -698,7 +700,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         msgToClient("MESSAGE:Saved as favorite", cmd.client);
 
         FavoritesRequest req{};
-        req.client = nullptr; // explicit
+        req.client = nullptr; // nullptr triggers a broadcast to all clients
 
         if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
             msgToClient("ERROR:favorites queue busy", cmd.client);
