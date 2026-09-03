@@ -693,7 +693,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         req.client = nullptr; // nullptr triggers a broadcast to all clients
 
         if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-            msgToClient("ERROR:favorites queue busy", cmd.client);
+            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
         break;
     }
 
