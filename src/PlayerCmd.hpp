@@ -34,6 +34,7 @@ enum class PlayerCmdType
     DELETE_FAVORITE,
 
     CLEAR_PLAYLIST,
+    FLUSH_PLAYLIST,
     EOF_REACHED,
 };
 

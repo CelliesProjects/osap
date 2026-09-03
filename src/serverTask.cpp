@@ -414,7 +414,7 @@ static void handleFavorite(PsychicWebSocketRequest *request, const char *payload
     {
         cmd.type = PlayerCmdType::DELETE_FAVORITE;
         snprintf(cmd.name, sizeof(cmd.name), "%s", sub + 7);
-        msgToClient("MESSAGE:Deleting favorite",client);
+        msgToClient("MESSAGE:Deleting favorite", client);
     }
     else
     {
@@ -489,6 +489,17 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
         PlayerCmd cmd{};
         cmd.type = PlayerCmdType::SEND_FAVORITES;
         cmd.client = websocketHandler.getClient(request->client()->socket());
+
+        if (xQueueSend(playerQueue, &cmd, 0) != pdTRUE)
+            broadcastPlayerBusy();
+
+        return ESP_OK;
+    }
+
+    else if (strncmp(payload, "FLUSH:PLAYLIST:", 15) == 0)
+    {
+        PlayerCmd cmd{};
+        cmd.type = PlayerCmdType::FLUSH_PLAYLIST;
 
         if (xQueueSend(playerQueue, &cmd, 0) != pdTRUE)
             broadcastPlayerBusy();
