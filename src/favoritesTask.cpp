@@ -5,8 +5,7 @@ static String msg;
 
 static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 {
-    msg.clear();
-    msg += "FAVORITES:\n";
+    msg = "FAVORITES:\n";
 
     File dir;
 
@@ -75,6 +74,8 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
             msg += "\n";
         }
     }
+
+    log_i("favorites msg size: %d", msg.length());
 
     if (c)
         msgToClient(msg.c_str(), c);
