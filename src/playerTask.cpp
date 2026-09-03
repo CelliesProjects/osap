@@ -673,7 +673,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         if (deleteFavorite(cmd))
         {
             FavoritesRequest req{};
-            req.client = cmd.client;
+            req.client = nullptr;
 
             if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
                 msgToClient("ERROR:favorites queue busy", cmd.client);
@@ -684,6 +684,21 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
     {
         FavoritesRequest req{};
         req.client = cmd.client;
+
+        if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
+            msgToClient("ERROR:favorites queue busy", cmd.client);
+        break;
+    }
+
+    case PlayerCmdType::SAVE_FAVORITE:
+    {
+        if (!saveFavorite(cmd))
+            break;
+
+        msgToClient("MESSAGE:Saved as favorite", cmd.client);
+
+        FavoritesRequest req{};
+        req.client = nullptr; // explicit
 
         if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
             msgToClient("ERROR:favorites queue busy", cmd.client);
@@ -873,22 +888,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
         msgToClient(msgBuffer, cmd.client);
         broadcastPlaylist();
-
-        break;
-    }
-
-    case PlayerCmdType::SAVE_FAVORITE:
-    {
-        if (!saveFavorite(cmd))
-            break;
-
-        msgToClient("MESSAGE:Saved as favorite", cmd.client);
-
-        PlayerCmd pcmd{};
-        pcmd.type = PlayerCmdType::SEND_FAVORITES;
-
-        if (xQueueSend(playerQueue, &pcmd, 0) != pdTRUE)
-            msgToClient(ERROR_PLAYER_BUSY, cmd.client);
 
         break;
     }
