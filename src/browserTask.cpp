@@ -1,6 +1,6 @@
 #include "browserTask.hpp"
 
-constexpr int MAX_ITEMS = 5;
+constexpr int MAX_ITEMS = 2;
 
 static char chunkHeader[256];
 static ListRequest req;
