@@ -492,8 +492,6 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
         if (xQueueSend(favoritesQueue, &favReq, 0) != pdTRUE)
             broadcastPlayerBusy(); // TODO: there is a error already for this somewhere
 
-        // TODO: clean up playertask unused SEND_FAVORITES code
-
         return ESP_OK;
     }
 

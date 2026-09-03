@@ -682,16 +682,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         }
         break;
 
-    case PlayerCmdType::SEND_FAVORITES:
-    {
-        FavoritesRequest req{};
-        req.client = cmd.client;
-
-        if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
-        break;
-    }
-
     case PlayerCmdType::SAVE_FAVORITE:
     {
         if (!saveFavorite(cmd))
