@@ -8,6 +8,7 @@
 #include "secrets.hpp"
 #include "BrowserRequest.hpp"
 #include "SearchRequest.hpp"
+#include "FavoritesRequest.hpp"
 #include "PlayerCmd.hpp"
 #include "SystemState.hpp"
 #include "gpio.hpp"
@@ -21,6 +22,7 @@ extern const char *FAVORITES_DIR;
 QueueHandle_t playerQueue = nullptr;
 QueueHandle_t browserQueue = nullptr;
 QueueHandle_t searchQueue = nullptr;
+QueueHandle_t favoritesQueue = nullptr;
 
 extern void oledMessage(SystemState state, const char *msg);
 extern void oledTask(void *param);
@@ -118,6 +120,10 @@ void setup()
     searchQueue = xQueueCreate(5, sizeof(SearchRequest));
     if (!searchQueue)
         fatalError("search queue could not be created");
+
+    favoritesQueue = xQueueCreate(5, sizeof(FavoritesRequest));
+    if (!favoritesQueue)
+        fatalError("favorites queue could not be created");        
 
     sdMutex = xSemaphoreCreateMutex();
     if (!sdMutex)
