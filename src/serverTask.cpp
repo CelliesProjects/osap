@@ -490,7 +490,7 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
         favReq.client = websocketHandler.getClient(request->client()->socket());
 
         if (xQueueSend(favoritesQueue, &favReq, 0) != pdTRUE)
-            broadcastPlayerBusy(); // TODO: there is a error already for this somewhere
+            msgToClient(ERROR_FAVORITES_BUSY, favReq.client);
 
         return ESP_OK;
     }

@@ -25,6 +25,7 @@ extern SemaphoreHandle_t sdMutex;
 
 extern String favoritesToCStruct();
 
+const char *ERROR_FAVORITES_BUSY = "ERROR:Favorites task busy";
 const char *ERROR_PLAYER_BUSY = "ERROR:Player busy";
 
 void serverTask(void *param);
