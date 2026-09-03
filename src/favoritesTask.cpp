@@ -1,29 +1,10 @@
 #include "favoritesTask.hpp"
 
 static FavoritesRequest req;
-static String msg;
+static String webSocketMsg;
 
-static void sendFavorites(PsychicWebSocketClient *c = nullptr)
+static void handleFolder(File &dir)
 {
-    msg = "FAVORITES:\n";
-
-    File dir;
-
-    {
-        ScopedMutex lock(sdMutex);
-        dir = SD.open(FAVORITES_DIR);
-    }
-
-    if (!dir || !dir.isDirectory())
-    {
-        if (c)
-            msgToClient(msg.c_str(), c);
-        else
-            websocketHandler.sendAll(msg.c_str());
-
-        return;
-    }
-
     while (true)
     {
         File file;
@@ -70,24 +51,48 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 
         if (name.length())
         {
-            msg += name;
-            msg += "\n";
+            webSocketMsg += name;
+            webSocketMsg += "\n";
         }
     }
+}
 
-    log_i("favorites msg size: %d", msg.length());
+static void sendFavorites(PsychicWebSocketClient *c = nullptr)
+{
+    webSocketMsg = "FAVORITES:\n";
+
+    File dir;
+
+    {
+        ScopedMutex lock(sdMutex);
+        dir = SD.open(FAVORITES_DIR);
+    }
+
+    if (!dir || !dir.isDirectory())
+    {
+        if (c)
+            msgToClient(webSocketMsg.c_str(), c);
+        else
+            websocketHandler.sendAll(webSocketMsg.c_str());
+
+        return;
+    }
+
+    handleFolder(dir);
+
+    log_i("favorites webSocketMsg size: %d", webSocketMsg.length());
 
     if (c)
-        msgToClient(msg.c_str(), c);
+        msgToClient(webSocketMsg.c_str(), c);
     else
-        websocketHandler.sendAll(msg.c_str());
+        websocketHandler.sendAll(webSocketMsg.c_str());
 }
 
 void favoritesTask(void *param)
 {
     log_d("favoritesTask running");
 
-    msg.reserve(4096);
+    webSocketMsg.reserve(4096);
 
     while (1)
     {
