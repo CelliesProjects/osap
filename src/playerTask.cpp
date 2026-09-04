@@ -632,6 +632,61 @@ static void playIndex(const PlayerCmd &cmd)
         msgToClient(ERROR_PLAYER_BUSY, cmd.client);
 }
 
+static void handleRemoveIndex(const PlayerCmd &cmd)
+{
+    const int index = cmd.index;
+    const int current = playList.currentPlaying();
+    const bool wasPlaying = (current == index);
+
+    if (!removeIndex(cmd))
+        return;
+
+    if (wasPlaying)
+    {
+        stopPlayback();
+
+        if (index < playList.size())
+        {
+            clearCurrentPlaying();
+
+            if (!startPlayingIndex(index))
+                queueNextItem(index + 1);
+        }
+        else
+            clearCurrentPlaying();
+    }
+    else if (index < current)
+        playList.setCurrentPlaying(current - 1);
+
+    broadcastPlaylist();
+}
+
+static void handleAddPreset(const PlayerCmd &cmd)
+{
+    if (!addPreset(cmd))
+        return;
+
+    const int index = playList.size() - 1;
+    const auto &item = playList.get(index);
+
+    if (cmd.startNow || !audio.isRunning())
+    {
+        playList.setCurrentPlaying(index);
+        broadcastPlaylist();
+        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
+        msgToClient(msgBuffer, cmd.client);
+
+        if (!startPlayingIndex(index))
+            clearCurrentPlaying();
+
+        return;
+    }
+
+    broadcastPlaylist();
+    snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
+    msgToClient(msgBuffer, cmd.client);
+}
+
 static void handlePlayerCommand(const PlayerCmd &cmd)
 {
     if (!audio.isChipConnected())
@@ -705,58 +760,13 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     case PlayerCmdType::REMOVE_INDEX:
     {
-        const int index = cmd.index;
-        const int current = playList.currentPlaying();
-        const bool wasPlaying = (current == index);
-
-        if (!removeIndex(cmd))
-            break;
-
-        if (wasPlaying)
-        {
-            stopPlayback();
-
-            if (index < playList.size())
-            {
-                clearCurrentPlaying();
-
-                if (!startPlayingIndex(index))
-                    queueNextItem(index + 1);
-            }
-            else
-                clearCurrentPlaying();
-        }
-        else if (index < current)
-            playList.setCurrentPlaying(current - 1);
-
-        broadcastPlaylist();
+        handleRemoveIndex(cmd);
         break;
     }
 
     case PlayerCmdType::ADD_PRESET:
     {
-        if (!addPreset(cmd))
-            break;
-
-        const int index = playList.size() - 1;
-        const auto &item = playList.get(index);
-
-        if (cmd.startNow || !audio.isRunning())
-        {
-            playList.setCurrentPlaying(index);
-            broadcastPlaylist();
-            snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
-            msgToClient(msgBuffer, cmd.client);
-
-            if (!startPlayingIndex(index))
-                clearCurrentPlaying();
-
-            break;
-        }
-
-        broadcastPlaylist();
-        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
-        msgToClient(msgBuffer, cmd.client);
+        handleAddPreset(cmd);
         break;
     }
 
