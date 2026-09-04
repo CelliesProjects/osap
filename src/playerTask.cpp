@@ -387,6 +387,7 @@ static void clearPlaylist(const PlayerCmd &cmd)
     }
 
     playList.clear();
+    broadcastPlaylist();
 }
 
 static String favoritePath(const String &name)
@@ -728,7 +729,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     case PlayerCmdType::CLEAR_PLAYLIST:
         clearPlaylist(cmd);
-        broadcastPlaylist();
         break;
 
     case PlayerCmdType::SET_VOLUME:
