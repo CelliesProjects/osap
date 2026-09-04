@@ -6,6 +6,8 @@
 #include <ESP32_VS1053_Stream.h> /* https://github.com/CelliesProjects/ESP32_VS1053_Stream */
 #include <PsychicWebSocket.h>    /* https://github.com/hoeken/PsychicHttp */
 
+#include "FavoritesRequest.hpp"
+
 #include "SystemState.hpp"
 #include "Playlist.hpp"
 #include "ScopedMutex.hpp"
@@ -19,8 +21,10 @@ extern PsychicWebSocketHandler websocketHandler;
 extern void msgToClient(const char *msg, PsychicWebSocketClient *c);
 extern void oledMessage(SystemState state, const char *msg);
 extern QueueHandle_t playerQueue;
+extern QueueHandle_t favoritesQueue;
 
 extern const char *ERROR_PLAYER_BUSY;
+extern const char *ERROR_FAVORITES_BUSY;
 extern void broadcastPlayerBusy();
 
 extern SystemState systemState;

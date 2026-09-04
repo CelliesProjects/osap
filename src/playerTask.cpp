@@ -269,99 +269,6 @@ String favoritesToCStruct()
     return out;
 }
 
-static void sendFavorites(PsychicWebSocketClient *c = nullptr)
-{
-    String msg;
-    msg.reserve(4096);
-
-    msg += "FAVORITES:\n";
-
-    File dir;
-
-    feedDecoder();
-
-    {
-        ScopedMutex lock(sdMutex);
-        dir = SD.open(FAVORITES_DIR);
-    }
-
-    feedDecoder();
-
-    if (!dir || !dir.isDirectory())
-    {
-        if (c)
-            msgToClient(msg.c_str(), c);
-        else
-            websocketHandler.sendAll(msg.c_str());
-
-        return;
-    }
-
-    while (true)
-    {
-        File file;
-
-        {
-            ScopedMutex lock(sdMutex);
-            file = dir.openNextFile();
-        }
-
-        feedDecoder();
-
-        if (!file)
-            break;
-
-        if (file.isDirectory())
-            continue;
-
-        String name;
-
-        while (true)
-        {
-            String line;
-
-            {
-                ScopedMutex lock(sdMutex);
-
-                if (!file.available())
-                    break;
-
-                line = file.readStringUntil('\n');
-            }
-
-            feedDecoder();
-
-            line.trim();
-
-            if (line.startsWith("NAME:"))
-            {
-                name = line.substring(5);
-                break;
-            }
-        }
-
-        {
-            ScopedMutex lock(sdMutex);
-            file.close();
-        }
-
-        feedDecoder();
-
-        if (name.length())
-        {
-            msg += name;
-            msg += "\n";
-        }
-
-        feedDecoder();
-    }
-
-    if (c)
-        msgToClient(msg.c_str(), c);
-    else
-        websocketHandler.sendAll(msg.c_str());
-}
-
 static bool addPreset(const PlayerCmd &cmd)
 {
     int index = cmd.index;
@@ -759,19 +666,34 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     log_d("current playing index %d", playList.currentPlaying());
 
-    switch (cmd.type)
+        switch (cmd.type)
     {
-
-        /* not depending on current play state */
 
     case PlayerCmdType::DELETE_FAVORITE:
         if (deleteFavorite(cmd))
-            sendFavorites();
+        {
+            FavoritesRequest req{};
+            req.client = nullptr; // nullptr triggers a broadcast to all clients
+
+            if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
+                msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
+        }
         break;
 
-    case PlayerCmdType::SEND_FAVORITES:
-        sendFavorites(cmd.client);
+    case PlayerCmdType::SAVE_FAVORITE:
+    {
+        if (!saveFavorite(cmd))
+            break;
+
+        msgToClient("MESSAGE:Saved as favorite", cmd.client);
+
+        FavoritesRequest req{};
+        req.client = nullptr; // nullptr triggers a broadcast to all clients
+
+        if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
+            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
         break;
+    }
 
     case PlayerCmdType::SEND_PRESETS:
         sendPresets(cmd);
@@ -956,22 +878,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
         msgToClient(msgBuffer, cmd.client);
         broadcastPlaylist();
-
-        break;
-    }
-
-    case PlayerCmdType::SAVE_FAVORITE:
-    {
-        if (!saveFavorite(cmd))
-            break;
-
-        msgToClient("MESSAGE:Saved as favorite", cmd.client);
-
-        PlayerCmd pcmd{};
-        pcmd.type = PlayerCmdType::SEND_FAVORITES;
-
-        if (xQueueSend(playerQueue, &pcmd, 0) != pdTRUE)
-            msgToClient(ERROR_PLAYER_BUSY, cmd.client);
 
         break;
     }

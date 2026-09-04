@@ -8,6 +8,7 @@
 #include "secrets.hpp"
 #include "BrowserRequest.hpp"
 #include "SearchRequest.hpp"
+#include "FavoritesRequest.hpp"
 #include "PlayerCmd.hpp"
 #include "SystemState.hpp"
 #include "gpio.hpp"
@@ -21,8 +22,10 @@ extern const char *FAVORITES_DIR;
 QueueHandle_t playerQueue = nullptr;
 QueueHandle_t browserQueue = nullptr;
 QueueHandle_t searchQueue = nullptr;
+QueueHandle_t favoritesQueue = nullptr;
 
 extern void oledMessage(SystemState state, const char *msg);
+extern void favoritesTask(void *param);
 extern void oledTask(void *param);
 extern void playerTask(void *param);
 extern void serverTask(void *param);
@@ -119,6 +122,10 @@ void setup()
     if (!searchQueue)
         fatalError("search queue could not be created");
 
+    favoritesQueue = xQueueCreate(5, sizeof(FavoritesRequest));
+    if (!favoritesQueue)
+        fatalError("favorites queue could not be created");        
+
     sdMutex = xSemaphoreCreateMutex();
     if (!sdMutex)
         fatalError("sd mutex could not be created");
@@ -163,6 +170,7 @@ void setup()
     if (!SPI.begin(VS1053_SCK, VS1053_MISO, VS1053_MOSI))
         fatalError("vs1053 spi pin error");
 
+    createTask(favoritesTask, "favoritesTask", 4096, 0);
     createTask(playerTask, "playerTask", 1024 * 5, 7);
     createTask(browserTask, "browserTask", 4096, 0);
     createTask(searchTask, "searchTask", 1024 * 5, 0);

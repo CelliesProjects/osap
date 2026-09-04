@@ -17,7 +17,6 @@ enum class PlayerCmdType
 
     SEND_PLAYLIST,
     SEND_PRESETS,
-    SEND_FAVORITES,
     SEND_STREAMTITLE,
     SEND_CODEC,
     SEND_BITRATE,
