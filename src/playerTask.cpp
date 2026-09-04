@@ -714,10 +714,9 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         break;
 
     case PlayerCmdType::SAVE_FAVORITE:
-    {
         handleSaveFavorite(cmd);
         break;
-    }
+    
 
     case PlayerCmdType::SEND_PRESETS:
         sendPresets(cmd);
@@ -732,10 +731,9 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         break;
 
     case PlayerCmdType::SET_VOLUME:
-    {
         setVolume(cmd);
         break;
-    }
+    
 
     case PlayerCmdType::SEND_VOLUME:
     {
@@ -747,28 +745,20 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         /* depending on current play state */
 
     case PlayerCmdType::EOF_REACHED:
-    {
         handleEOF();
         break;
-    }
 
     case PlayerCmdType::PLAY_INDEX:
-    {
         playIndex(cmd);
         break;
-    }
 
     case PlayerCmdType::REMOVE_INDEX:
-    {
         handleRemoveIndex(cmd);
         break;
-    }
 
     case PlayerCmdType::ADD_PRESET:
-    {
         handleAddPreset(cmd);
         break;
-    }
 
     case PlayerCmdType::ADD_PATH:
         addPath(cmd);
