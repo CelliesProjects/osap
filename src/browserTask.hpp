@@ -9,6 +9,8 @@
 #include "BrowserRequest.hpp"
 #include "ScopedMutex.hpp"
 
+constexpr int MAX_ITEMS_IN_CHUNK = 30;
+
 extern SemaphoreHandle_t sdMutex;
 extern QueueHandle_t browserQueue;
 extern PsychicWebSocketHandler websocketHandler;
