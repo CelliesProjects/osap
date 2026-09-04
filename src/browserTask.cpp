@@ -1,13 +1,11 @@
 #include "browserTask.hpp"
 
-constexpr int MAX_ITEMS = 2;
-
 static char chunkHeader[256];
 static ListRequest req;
+static String chunk;
 
 void browserTask(void *param)
 {
-    String chunk;
     chunk.reserve(2048);
 
     while (1)
@@ -69,7 +67,7 @@ void browserTask(void *param)
             count++;
 
             // send chunk
-            if (count >= MAX_ITEMS)
+            if (count >= MAX_ITEMS_IN_CHUNK)
             {
                 msgToClient(chunk.c_str(), req.client);
                 chunk = chunkHeader;
