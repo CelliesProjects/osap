@@ -387,6 +387,7 @@ static void clearPlaylist(const PlayerCmd &cmd)
     }
 
     playList.clear();
+    broadcastPlaylist();
 }
 
 static String favoritePath(const String &name)
@@ -433,15 +434,11 @@ static bool saveFavorite(const PlayerCmd &cmd)
 
     File f;
 
-    feedDecoder();
-
     {
         ScopedMutex lock(sdMutex);
 
         f = SD.open(path, FILE_WRITE, true);
     }
-
-    feedDecoder();
 
     if (!f)
     {
@@ -455,8 +452,6 @@ static bool saveFavorite(const PlayerCmd &cmd)
         f.print(contents);
         f.close();
     }
-
-    feedDecoder();
 
     return true;
 }
@@ -488,14 +483,13 @@ static bool loadFavorite(const char *name, PlaylistItem &item)
 
     while (true)
     {
+        if (!file.available())
+            break;
+
         String line;
 
         {
             ScopedMutex lock(sdMutex);
-
-            if (!file.available())
-                break;
-
             line = file.readStringUntil('\n');
         }
 
@@ -509,8 +503,6 @@ static bool loadFavorite(const char *name, PlaylistItem &item)
 
         else if (line.startsWith("TYPE:"))
             favType = line.substring(5);
-
-        feedDecoder();
     }
 
     {
@@ -576,6 +568,126 @@ static int scaleVolume(int uiVolume)
     return !uiVolume ? 0 : map(uiVolume, 0, 100, 60, 100);
 }
 
+static void handleSaveFavorite(const PlayerCmd &cmd)
+{
+    if (!saveFavorite(cmd))
+        return;
+
+    msgToClient("MESSAGE:Saved as favorite", cmd.client);
+
+    FavoritesRequest req{};
+    req.client = nullptr; // nullptr triggers a broadcast to all clients
+
+    if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
+        msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
+}
+
+static void setVolume(const PlayerCmd &cmd)
+{
+    const int requested = constrain(cmd.volume, 0, 100);
+    const int scaled = scaleVolume(requested);
+
+    if (scaled == scaleVolume(currentVolume))
+    {
+        log_v("volume is the same, aborting");
+        return;
+    }
+
+    audio.setVolume(scaled);
+
+    currentVolume = requested;
+
+    log_v("[AUDIO] audio set to %d by ui and applied scaled to %d for hardware", requested, scaled);
+
+    snprintf(msgBuffer, sizeof(msgBuffer), "VOLUMESET:%d", currentVolume);
+    websocketHandler.sendAll(msgBuffer);
+}
+
+static void handleEOF()
+{
+    const int current = playList.currentPlaying();
+
+    if (current < 0)
+    {
+        log_w("EOF received without active item");
+        return;
+    }
+
+    queueNextItem(current + 1);
+}
+
+static void playIndex(const PlayerCmd &cmd)
+{
+    PlayerCmd next{};
+    next.type = PlayerCmdType::NEXT;
+    next.index = cmd.index;
+
+    broadcastCurrent(cmd.index);
+
+    const auto &item = playList.get(cmd.index);
+
+    snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
+    msgToClient(msgBuffer, cmd.client);
+
+    if (xQueueSend(playerQueue, &next, 0) != pdTRUE)
+        msgToClient(ERROR_PLAYER_BUSY, cmd.client);
+}
+
+static void handleRemoveIndex(const PlayerCmd &cmd)
+{
+    const int index = cmd.index;
+    const int current = playList.currentPlaying();
+    const bool wasPlaying = (current == index);
+
+    if (!removeIndex(cmd))
+        return;
+
+    if (wasPlaying)
+    {
+        stopPlayback();
+
+        if (index < playList.size())
+        {
+            clearCurrentPlaying();
+
+            if (!startPlayingIndex(index))
+                queueNextItem(index + 1);
+        }
+        else
+            clearCurrentPlaying();
+    }
+    else if (index < current)
+        playList.setCurrentPlaying(current - 1);
+
+    broadcastPlaylist();
+}
+
+static void handleAddPreset(const PlayerCmd &cmd)
+{
+    if (!addPreset(cmd))
+        return;
+
+    const int index = playList.size() - 1;
+    const auto &item = playList.get(index);
+
+    if (cmd.startNow || !audio.isRunning())
+    {
+        playList.setCurrentPlaying(index);
+        broadcastPlaylist();
+        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
+        msgToClient(msgBuffer, cmd.client);
+
+        if (!startPlayingIndex(index))
+            clearCurrentPlaying();
+
+        return;
+    }
+
+    broadcastPlaylist();
+    snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
+    msgToClient(msgBuffer, cmd.client);
+}
+
 static void handlePlayerCommand(const PlayerCmd &cmd)
 {
     if (!audio.isChipConnected())
@@ -587,7 +699,7 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     log_d("current playing index %d", playList.currentPlaying());
 
-        switch (cmd.type)
+    switch (cmd.type)
     {
 
     case PlayerCmdType::DELETE_FAVORITE:
@@ -602,19 +714,9 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         break;
 
     case PlayerCmdType::SAVE_FAVORITE:
-    {
-        if (!saveFavorite(cmd))
-            break;
-
-        msgToClient("MESSAGE:Saved as favorite", cmd.client);
-
-        FavoritesRequest req{};
-        req.client = nullptr; // nullptr triggers a broadcast to all clients
-
-        if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
+        handleSaveFavorite(cmd);
         break;
-    }
+    
 
     case PlayerCmdType::SEND_PRESETS:
         sendPresets(cmd);
@@ -626,31 +728,12 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
 
     case PlayerCmdType::CLEAR_PLAYLIST:
         clearPlaylist(cmd);
-        broadcastPlaylist();
         break;
 
     case PlayerCmdType::SET_VOLUME:
-    {
-        const int requested = constrain(cmd.volume, 0, 100);
-        const int scaled = scaleVolume(requested);
-
-        if (scaled == scaleVolume(currentVolume))
-        {
-            log_v("volume is the same, aborting");
-            break;
-        }
-
-        audio.setVolume(scaled);
-
-        currentVolume = requested;
-
-        log_v("[AUDIO] audio set to %d by ui and applied scaled to %d for hardware", requested, scaled);
-
-        snprintf(msgBuffer, sizeof(msgBuffer), "VOLUMESET:%d", currentVolume);
-        websocketHandler.sendAll(msgBuffer);
-
+        setVolume(cmd);
         break;
-    }
+    
 
     case PlayerCmdType::SEND_VOLUME:
     {
@@ -662,94 +745,20 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
         /* depending on current play state */
 
     case PlayerCmdType::EOF_REACHED:
-    {
-        const int current = playList.currentPlaying();
-
-        if (current < 0)
-        {
-            log_w("EOF received without active item");
-            break;
-        }
-
-        queueNextItem(current + 1);
+        handleEOF();
         break;
-    }
 
     case PlayerCmdType::PLAY_INDEX:
-    {
-        PlayerCmd next{};
-        next.type = PlayerCmdType::NEXT;
-        next.index = cmd.index;
-
-        broadcastCurrent(cmd.index);
-
-        const auto &item = playList.get(cmd.index);
-
-        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
-        msgToClient(msgBuffer, cmd.client);
-
-        if (xQueueSend(playerQueue, &next, 0) != pdTRUE)
-            msgToClient(ERROR_PLAYER_BUSY, cmd.client);
-
+        playIndex(cmd);
         break;
-    }
 
     case PlayerCmdType::REMOVE_INDEX:
-    {
-        const int index = cmd.index;
-        const int current = playList.currentPlaying();
-        const bool wasPlaying = (current == index);
-
-        if (!removeIndex(cmd))
-            break;
-
-        if (wasPlaying)
-        {
-            stopPlayback();
-
-            if (index < playList.size())
-            {
-                clearCurrentPlaying();
-
-                if (!startPlayingIndex(index))
-                    queueNextItem(index + 1);
-            }
-            else
-                clearCurrentPlaying();
-        }
-        else if (index < current)
-            playList.setCurrentPlaying(current - 1);
-
-        broadcastPlaylist();
+        handleRemoveIndex(cmd);
         break;
-    }
 
     case PlayerCmdType::ADD_PRESET:
-    {
-        if (!addPreset(cmd))
-            break;
-
-        const int index = playList.size() - 1;
-        const auto &item = playList.get(index);
-
-        if (cmd.startNow || !audio.isRunning())
-        {
-            playList.setCurrentPlaying(index);
-            broadcastPlaylist();
-            snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Starting '%s'", item->name.c_str());
-            msgToClient(msgBuffer, cmd.client);
-
-            if (!startPlayingIndex(index))
-                clearCurrentPlaying();
-
-            break;
-        }
-
-        broadcastPlaylist();
-        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Added '%s'", item->name.c_str());
-        msgToClient(msgBuffer, cmd.client);
+        handleAddPreset(cmd);
         break;
-    }
 
     case PlayerCmdType::ADD_PATH:
         addPath(cmd);
