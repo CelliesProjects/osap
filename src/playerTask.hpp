@@ -23,11 +23,13 @@ extern void oledMessage(SystemState state, const char *msg);
 extern QueueHandle_t playerQueue;
 extern QueueHandle_t favoritesQueue;
 
+extern const char *FAVORITES_DIR;
+
 extern const char *ERROR_PLAYER_BUSY;
 extern const char *ERROR_FAVORITES_BUSY;
+
 extern void broadcastPlayerBusy();
 
 extern SystemState systemState;
 
-const char *FAVORITES_DIR = "/.favorites/";
 void playerTask(void *param);
