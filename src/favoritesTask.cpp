@@ -57,15 +57,15 @@ static void processItems(File &dir)
     }
 }
 
-static void sendWS(PsychicWebSocketClient *c)
+static void sendWS(PsychicWebSocketClient *client)
 {
-    if (c)
-        msgToClient(webSocketMsg.c_str(), c);
+    if (client)
+        msgToClient(webSocketMsg.c_str(), client);
     else
         websocketHandler.sendAll(webSocketMsg.c_str());
 }
 
-static void sendFavorites(PsychicWebSocketClient *c = nullptr)
+static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 {
     webSocketMsg = "FAVORITES:\n";
 
@@ -78,7 +78,7 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 
     if (!dir || !dir.isDirectory())
     {
-        sendWS(c);
+        sendWS(client);
         return;
     }
 
@@ -86,24 +86,19 @@ static void sendFavorites(PsychicWebSocketClient *c = nullptr)
 
     log_d("favorites webSocketMsg size: %d", webSocketMsg.length());
 
-    sendWS(c);
+    sendWS(client);
 }
 
 void favoritesTask(void *param)
 {
-    log_d("favoritesTask running");
-
     webSocketMsg.reserve(WS_MSG_RESERVED);
 
     while (1)
     {
-        log_v("stack high water mark: %i", uxTaskGetStackHighWaterMark(NULL));
+        log_d("stack high water mark: %i", uxTaskGetStackHighWaterMark(NULL));
 
         if (xQueueReceive(favoritesQueue, &req, portMAX_DELAY) != pdTRUE)
-        {
-            log_e("could not queue favorites request");
             continue;
-        }
 
         sendFavorites(req.client);
     }
