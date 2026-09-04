@@ -40,6 +40,85 @@ static void addStaticContentHeaders(PsychicResponse *response)
     response->addHeader("ETag", etagValue);
 }
 
+String favoritesToCStruct()
+{
+    String out;
+    out.reserve(4096);
+
+    out += "constexpr struct source preset[]{\n\n";
+
+    File dir;
+
+    {
+        ScopedMutex lock(sdMutex);
+        dir = SD.open(FAVORITES_DIR);
+    }
+
+    if (!dir || !dir.isDirectory())
+    {
+        out += "};\n";
+        return out;
+    }
+
+    while (true)
+    {
+        File file;
+
+        {
+            ScopedMutex lock(sdMutex);
+            file = dir.openNextFile();
+        }
+
+        if (!file)
+            break;
+
+        if (file.isDirectory())
+            continue;
+
+        String name;
+        String url;
+
+        while (true)
+        {
+            String line;
+
+            {
+                ScopedMutex lock(sdMutex);
+
+                if (!file.available())
+                    break;
+
+                line = file.readStringUntil('\n');
+            }
+
+            line.trim();
+
+            if (line.startsWith("NAME:"))
+                name = line.substring(5);
+
+            else if (line.startsWith("URL:"))
+                url = line.substring(4);
+        }
+
+        {
+            ScopedMutex lock(sdMutex);
+            file.close();
+        }
+
+        if (!name.isEmpty() && !url.isEmpty())
+        {
+            out += "    {\"";
+            out += name;
+            out += "\", \"";
+            out += url;
+            out += "\"},\n";
+        }
+    }
+
+    out += "\n};\n";
+    return out;
+}
+
 static esp_err_t favoritesHandler(PsychicRequest *request, PsychicResponse *response)
 {
     String html;

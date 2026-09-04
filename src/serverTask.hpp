@@ -23,7 +23,7 @@ extern QueueHandle_t favoritesQueue;
 
 extern SemaphoreHandle_t sdMutex;
 
-extern String favoritesToCStruct();
+const char *FAVORITES_DIR = "/.favorites/";
 
 const char *ERROR_FAVORITES_BUSY = "ERROR:Favorites task busy";
 const char *ERROR_PLAYER_BUSY = "ERROR:Player busy";
