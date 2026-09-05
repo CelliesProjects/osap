@@ -9,7 +9,7 @@
 #include "BrowserRequest.hpp"
 #include "ScopedMutex.hpp"
 
-constexpr int MAX_ITEMS_IN_CHUNK = 30;
+constexpr int MAX_ITEMS_IN_CHUNK = 10;
 
 extern SemaphoreHandle_t sdMutex;
 extern QueueHandle_t browserQueue;
