@@ -106,7 +106,7 @@ The following steps assume you have a working VSCode/PlatformIO setup.
 1. Clone this repository to your computer:    
 `git clone https://github.com/CelliesProjects/osap`
 
-2. Open VSCode and select from the top menu `File->Open folder` and select the folder where you cloned the repository in.  
+2. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned the repository in.  
 This is the project folder.
  
 4. Add your wifi secrets by adding the file `src/secrets.hpp` in the project folder.  
