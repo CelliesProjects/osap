@@ -1039,18 +1039,11 @@
                     up.textContent = "..";
 
                     up.addEventListener("click", () => {
-                        if (folderBusy) {
-                            showToast("Please wait, folder loading", "err");
-                            return;
-                        }
-
                         folderBusy = true;
                         goingUp = true;
                         container.classList.add("disabled");
-
                         sendWS(`REQ:LIST:${parentPath(path)}`);
                     });
-
                     container.appendChild(up);
                 }
             }
