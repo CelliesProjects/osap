@@ -109,12 +109,12 @@ The following steps assume you have a working VSCode/PlatformIO setup.
 2. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned the repository in.  
 This is the project folder.
  
-4. Add your wifi secrets by adding the file `src/secrets.hpp` in the project folder.  
+3. Add your wifi secrets by adding the file `src/secrets.hpp` in the project folder.  
 See the [Building](#building) section below on how to create this file.
 
 4. Open PlatformIO and select `Project tasks->develop->Upload and monitor`.
 
-3. Now VSCode/PlatformIO will download and install all the assets that are needed to build the player.  
+5. Now VSCode/PlatformIO will download and install all the assets that are needed to build the player.  
 This might take a while depending on your internet speed and computer capabilities.  
 If all assets are downloaded, PlatformIO will start compiling and flash your player.
 
