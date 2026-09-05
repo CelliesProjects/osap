@@ -1016,8 +1016,8 @@
     <!-- file browser stuff -->
     <script>
         let folderBusy = false;
-        let scrollPos = [];
         let goingUp = false;
+        let scrollPos = [];
         let selectedIndex = [];
 
         function displayChunkedFolderData(msg) {
@@ -1183,8 +1183,6 @@
             }
 
             else if (raw.startsWith("LIST:DONE:")) {
-                folderBusy = false;
-                const path = document.getElementById("locationbar");
                 const container = document.getElementById("LIBRARY");
                 container.classList.remove("disabled");
 
@@ -1192,15 +1190,15 @@
                     container.scrollTop = 0;
 
                 else {
+                    goingUp = false;
                     container.scrollTop = scrollPos.pop();
 
                     const index = selectedIndex.pop();
                     const item = container.children[index];
                     if (item)
                         item.classList.add("active");
-
-                    goingUp = false;
                 }
+                folderBusy = false;
                 return;
             }
 
