@@ -111,6 +111,11 @@
             border-left: 1px solid #444;
         }
 
+        #LIBRARY.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
         /* playlist content */
         #PLAYLIST {
             flex: 1;
@@ -1011,6 +1016,9 @@
     <!-- file browser stuff -->
     <script>
         let folderBusy = false;
+        let goingUp = false;
+        let scrollPos = [];
+        let selectedIndex = [];
 
         function displayChunkedFolderData(msg) {
             const lines = msg.split("\n");
@@ -1031,15 +1039,11 @@
                     up.textContent = "..";
 
                     up.addEventListener("click", () => {
-                        if (folderBusy) {
-                            showToast("Please wait, folder loading", "err");
-                            return;
-                        }
-
                         folderBusy = true;
+                        goingUp = true;
+                        container.classList.add("disabled");
                         sendWS(`REQ:LIST:${parentPath(path)}`);
                     });
-
                     container.appendChild(up);
                 }
             }
@@ -1083,6 +1087,12 @@
 
                 if (type === "D") {
                     folderBusy = true;
+                    const container = document.getElementById("LIBRARY");
+
+                    container.classList.add("disabled");
+                    selectedIndex.push(Array.from(container.children).indexOf(el));
+                    scrollPos.push(container.scrollTop);
+
                     sendWS(`REQ:LIST:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:ADD:${fullPath}`);
@@ -1166,9 +1176,22 @@
             }
 
             else if (raw.startsWith("LIST:DONE:")) {
+                const container = document.getElementById("LIBRARY");
+                container.classList.remove("disabled");
+
+                if (!goingUp)
+                    container.scrollTop = 0;
+
+                else {
+                    goingUp = false;
+                    container.scrollTop = scrollPos.pop();
+
+                    const index = selectedIndex.pop();
+                    const item = container.children[index];
+                    if (item)
+                        item.classList.add("active");
+                }
                 folderBusy = false;
-                const path = document.getElementById("locationbar");
-                showToast("Folder '" + path.textContent + "' ready", "msg");
                 return;
             }
 
@@ -1267,7 +1290,7 @@
     <script>
         (() => {
             const host = (window.location.hostname === "" || window.location.hostname === "localhost")
-                ? "192.168.0.242"  // set the device ip here then debug this page without uploading to the device
+                ? "192.168.0.249"  // set the device ip here then debug this page without uploading to the device
                 : window.location.host;
             const WS_URL = `ws://${host}/ws`;
 

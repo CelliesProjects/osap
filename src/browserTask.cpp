@@ -72,11 +72,10 @@ void browserTask(void *param)
                 msgToClient(chunk.c_str(), req.client);
                 chunk = chunkHeader;
                 count = 0;
+                vPortYield();
             }
 
             entry.close();
-
-            vPortYield();
         }
 
         // send remainder
