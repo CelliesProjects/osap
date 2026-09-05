@@ -27,7 +27,7 @@ constexpr struct source preset[]{
     {"80s Hitradio Amsterdam", "http://s22.myradiostream.com:7728/"},
     {"Grolloo Radio", "https://de4.streamingpulse.com/ssl/7053"},
     {"Amsterdam Funk Channel", "https://stream.afc.fm/"},
-    {"Jazz Radio Soul", "http://jazz-wr12.ice.infomaniak.ch/jazz-wr12-128.mp3"},
+    {"Jazz Radio Soul Food", "http://jazz-wr12.ice.infomaniak.ch/jazz-wr12-128.mp3"},
     {"Disco Mix", "https://play.discomix.ro/8002/stream"},
     {"Absoluut FM", "http://absoluutfm.stream.laut.fm/absoluutfm"},
     {"Record DiscoFunk", "https://radiorecord.hostingradio.ru/discofunk96.aacp"},

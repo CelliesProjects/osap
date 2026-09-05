@@ -96,6 +96,32 @@ Dedicated SPI wiring is the recommended and supported configuration.
 
 ---
 
+# Download and initial setup
+
+You will need to have a working VSCode and PlatformIO setup to be able to build this project.  
+Make sure VSCode and PlatformIO are installed and working.  
+
+The following steps assume you have a working VSCode/PlatformIO setup.
+
+1. Clone this repository to your computer:    
+`git clone https://github.com/CelliesProjects/osap`
+
+2. Open VSCode and select from the top menu `File->Open folder` and select the folder where you cloned the repository in.  
+This is the project folder.
+ 
+4. Add your wifi secrets by adding the file `src/secrets.hpp` in the project folder.  
+See the [Building](#building) section below on how to create this file.
+
+4. Open PlatformIO and select `Project tasks->develop->Upload and monitor`.
+
+3. Now VSCode/PlatformIO will download and install all the assets that are needed to build the player.  
+This might take a while depending on your internet speed and computer capabilities.  
+If all assets are downloaded, PlatformIO will start compiling and flash your player.
+
+**Note:** The first time you build this project, a lot of required files will be downloaded and then compiled which might take a long time.  
+
+---
+
 # Building
 
 ## Required secrets file
