@@ -1013,7 +1013,7 @@
         let folderBusy = false;
         let scrollPos = [];
         let goingUp = false;
-
+        let selectedIndex = [];
 
         function displayChunkedFolderData(msg) {
             const lines = msg.split("\n");
@@ -1087,7 +1087,9 @@
 
                 if (type === "D") {
                     folderBusy = true;
-                    scrollPos.push(document.getElementById('LIBRARY').scrollTop);
+                    const container = document.getElementById("LIBRARY");
+                    selectedIndex.push(Array.from(container.children).indexOf(el));
+                    scrollPos.push(container.scrollTop);
                     sendWS(`REQ:LIST:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:ADD:${fullPath}`);
@@ -1174,8 +1176,15 @@
                 folderBusy = false;
                 const path = document.getElementById("locationbar");
 
-                if (goingUp) {
-                    document.getElementById("LIBRARY").scrollTop = scrollPos.pop();
+                if(goingUp) {
+                    const container = document.getElementById("LIBRARY");
+                    container.scrollTop = scrollPos.pop();
+
+                    const index = selectedIndex.pop();
+                    const item = container.children[index];
+                    if (item)
+                        item.classList.add("active");
+
                     goingUp = false;
                 }
                 showToast("Folder '" + path.textContent + "' ready", "msg");
