@@ -1011,6 +1011,9 @@
     <!-- file browser stuff -->
     <script>
         let folderBusy = false;
+        let scrollPos = [];
+        let goingUp = false;
+
 
         function displayChunkedFolderData(msg) {
             const lines = msg.split("\n");
@@ -1037,6 +1040,7 @@
                         }
 
                         folderBusy = true;
+                        goingUp = true;
                         sendWS(`REQ:LIST:${parentPath(path)}`);
                     });
 
@@ -1083,6 +1087,7 @@
 
                 if (type === "D") {
                     folderBusy = true;
+                    scrollPos.push(document.getElementById('LIBRARY').scrollTop);
                     sendWS(`REQ:LIST:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:ADD:${fullPath}`);
@@ -1168,6 +1173,11 @@
             else if (raw.startsWith("LIST:DONE:")) {
                 folderBusy = false;
                 const path = document.getElementById("locationbar");
+
+                if (goingUp) {
+                    document.getElementById("LIBRARY").scrollTop = scrollPos.pop();
+                    goingUp = false;
+                }
                 showToast("Folder '" + path.textContent + "' ready", "msg");
                 return;
             }
@@ -1267,7 +1277,7 @@
     <script>
         (() => {
             const host = (window.location.hostname === "" || window.location.hostname === "localhost")
-                ? "192.168.0.242"  // set the device ip here then debug this page without uploading to the device
+                ? "192.168.0.249"  // set the device ip here then debug this page without uploading to the device
                 : window.location.host;
             const WS_URL = `ws://${host}/ws`;
 
