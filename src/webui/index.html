@@ -111,6 +111,11 @@
             border-left: 1px solid #444;
         }
 
+        #LIBRARY.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
         /* playlist content */
         #PLAYLIST {
             flex: 1;
@@ -1041,6 +1046,8 @@
 
                         folderBusy = true;
                         goingUp = true;
+                        container.classList.add("disabled");
+
                         sendWS(`REQ:LIST:${parentPath(path)}`);
                     });
 
@@ -1088,8 +1095,11 @@
                 if (type === "D") {
                     folderBusy = true;
                     const container = document.getElementById("LIBRARY");
+
+                    container.classList.add("disabled");
                     selectedIndex.push(Array.from(container.children).indexOf(el));
                     scrollPos.push(container.scrollTop);
+
                     sendWS(`REQ:LIST:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:ADD:${fullPath}`);
@@ -1175,9 +1185,13 @@
             else if (raw.startsWith("LIST:DONE:")) {
                 folderBusy = false;
                 const path = document.getElementById("locationbar");
+                const container = document.getElementById("LIBRARY");
+                container.classList.remove("disabled");
 
-                if(goingUp) {
-                    const container = document.getElementById("LIBRARY");
+                if (!goingUp)
+                    container.scrollTop = 0;
+
+                else {
                     container.scrollTop = scrollPos.pop();
 
                     const index = selectedIndex.pop();
