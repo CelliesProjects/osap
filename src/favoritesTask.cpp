@@ -24,14 +24,13 @@ static void processItems(File &dir)
 
         while (true)
         {
+            if (!file.available())
+                break;
+
             String line;
 
             {
                 ScopedMutex lock(sdMutex);
-
-                if (!file.available())
-                    break;
-
                 line = file.readStringUntil('\n');
             }
 
@@ -44,10 +43,7 @@ static void processItems(File &dir)
             }
         }
 
-        {
-            ScopedMutex lock(sdMutex);
-            file.close();
-        }
+        file.close();
 
         if (name.length())
         {
@@ -83,6 +79,8 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
     }
 
     processItems(dir);
+
+    dir.close();
 
     log_d("favorites webSocketMsg size: %d", webSocketMsg.length());
 
