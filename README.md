@@ -98,27 +98,26 @@ Dedicated SPI wiring is the recommended and supported configuration.
 
 # Download and initial setup
 
-You will need to have a working VSCode and PlatformIO setup to be able to build this project.  
-Make sure VSCode and PlatformIO are installed and working.  
+The following steps assume you already have a working VSCode/PlatformIO setup.
 
-The following steps assume you have a working VSCode/PlatformIO setup.
-
-1. Clone this repository to your computer:    
-`git clone https://github.com/CelliesProjects/osap`
-
-2. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned the repository in.  
-This is the project folder.
+1. Clone this repository to your computer in a terminal:    
+`git clone --branch v1.0.0 https://github.com/CelliesProjects/osap`  
+Or [click here](https://github.com/CelliesProjects/osap/archive/refs/tags/v1.0.0.zip) to download the current release.  
+Download and then unzip this file.  
  
-3. Add your wifi secrets by adding the file `src/secrets.hpp` in the project folder.  
-See the [Building](#building) section below on how to create this file.
+2. Provide your wifi secrets by creating the file `src/secrets.hpp` in the project folder.  
+See the [Building](#building) section below on how to format this file.
 
-4. Open PlatformIO and select `Project tasks->develop->Upload and monitor`.
+3. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned or unzipped the repository to.  
+This is the project folder.
 
-5. Now VSCode/PlatformIO will download and install all the assets that are needed to build the player.  
+4. Open PlatformIO and select `Project tasks->develop->Upload and monitor`.  
+
+VSCode/PlatformIO will download and install all the assets that are needed to build the player firmware.  
 This might take a while depending on your internet speed and computer capabilities.  
-If all assets are downloaded, PlatformIO will start compiling and flash your player.
+If all assets are installed, PlatformIO will start compiling and flash your player.
 
-**Note:** The first time you build this project, a lot of required files will be downloaded and then compiled which might take a long time.  
+**Note:** The first time you build this project, a lot of files will be downloaded and then compiled which might take a long time.  
 
 ---
 
