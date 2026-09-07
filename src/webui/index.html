@@ -1350,7 +1350,7 @@
                 const age = Date.now() - lastMessageTime;
                 if (age > 5000) {
                     console.warn("WS stale");
-                    showToast("Disconnected", "err")
+                    showToast("Disconnected", "err");
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
 
