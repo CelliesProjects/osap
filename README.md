@@ -104,12 +104,12 @@ The following steps assume you already have a working VSCode/PlatformIO setup.
 `git clone --branch v1.0.0 https://github.com/CelliesProjects/osap`  
 Or [click here](https://github.com/CelliesProjects/osap/archive/refs/tags/v1.0.0.zip) to download the current release.  
 Download and then unzip this file.  
- 
-2. Provide your wifi secrets by creating the file `src/secrets.hpp` in the project folder.  
-See the [Building](#building) section below on how to format this file.
 
-3. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned or unzipped the repository to.  
+2. Open VSCode and select from the top menu `File->Open folder` then select the folder where you cloned or unzipped the repository to.  
 This is the project folder.
+
+3. Provide your wifi secrets by creating the file `src/secrets.hpp` in the project folder.  
+See the [Building](#building) section below on how to format this file.
 
 4. Open PlatformIO and select `Project tasks->develop->Upload and monitor`.  
 
