@@ -1053,13 +1053,13 @@ void playerTask(void *param)
             prevHeartbeat = now;
         }
 
-#if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL != ESP_LOG_DEBUG)
+#if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL >= ESP_LOG_INFO)
         static size_t lastFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         const size_t currentFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         if (currentFree < lastFree)
         {
-            log_i("Free PSRAM: %.1f KB.\tLargest FREE block: %.1f KB",
-                  heap_caps_get_free_size(MALLOC_CAP_SPIRAM) / 1024.0,
+            log_i("Free PSRAM: %.1f KB.\tLargest block: %.1f KB",
+                  currentFree / 1024.0,
                   heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.0);
             lastFree = currentFree;
         }
