@@ -32,7 +32,9 @@ void browserTask(void *param)
         if (auto *item = findCached(req.path))
         {
             msgToClient(item->response.c_str(), req.client);
+            vTaskDelay(1);
             msgToClient(LIST_FOOTER, req.client);
+            log_i("'%s' served from cache", req.path);
             continue;
         }
 
@@ -140,7 +142,7 @@ void browserTask(void *param)
                 cache[index].response = std::move(cached);
                 cache[index].timestamp = time(nullptr);
 
-                log_i("'%s' cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
+                log_i("'%s' is cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
             }
         }
     }
