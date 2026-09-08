@@ -58,15 +58,14 @@ void browserTask(void *param)
             continue;
         }
 
-        static String cached;
-
-        cached = "";
-
         snprintf(chunkHeader, sizeof(chunkHeader), "LIST:%s\n", req.path);
 
         int count = 0;
         chunk = chunkHeader;
 
+        static String cached;
+        cached = "";
+        
         while (true)
         {
             auto client = websocketHandler.getClient(req.client);
@@ -125,8 +124,6 @@ void browserTask(void *param)
 
         if (duration > CACHE_THRESHOLD_MS)
         {
-            log_i("'%s' duration: %lu ms", req.path, duration);
-
             int index = -1;
             for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
             {
@@ -148,7 +145,7 @@ void browserTask(void *param)
             cache[index].response = std::move(cached);
             cache[index].timestamp = time(nullptr);
 
-            log_i("'%s' is cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
+            log_i("%d ms - '%s' is cached - size: %d bytes at index %d", duration, req.path, cache[index].response.length(), index);
         }
     }
 }
