@@ -18,9 +18,11 @@ void browserTask(void *param)
 
         log_d("listing path: %s", req.path);
 
-        // check if the requested path is cached and if so, send the cached version 
+        // check if the requested path is cached and if so, send the cached version
         // then send LIST:DONE: as a separate msg
         // continue;
+
+        unsigned long startMS = millis();
 
         File dir;
         {
@@ -49,7 +51,6 @@ void browserTask(void *param)
         int count = 0;
         chunk = chunkHeader;
 
-        unsigned long startMS = millis();
         while (true)
         {
             auto client = websocketHandler.getClient(req.client);
@@ -101,11 +102,16 @@ void browserTask(void *param)
 
         msgToClient(LIST_FOOTER, req.client);
 
-        log_i("'%s' cached size: %d", req.path, cached.length());
-        log_i("cached: %s", cached.c_str());
-        log_i("duration: %lums", millis() - startMS);
+        const unsigned long duration = millis() - startMS;
 
-        // if (duration > 300)
-        //   cache this request.
+        log_d("'%s' cached size: %d", req.path, cached.length());
+        log_d("cached: %s", cached.c_str());
+        log_i("duration: %lums", duration);
+
+        if (duration > CACHE_THRESHOLD_MS)
+        {
+            // put req.path + cached into cache
+            log_i("'%s' would be cached", req.path);
+        }
     }
 }
