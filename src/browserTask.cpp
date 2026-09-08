@@ -6,6 +6,8 @@ static String chunk;
 
 void browserTask(void *param)
 {
+    constexpr const char *LIST_FOOTER = "LIST:DONE:";
+
     chunk.reserve(2048);
 
     while (1)
@@ -14,6 +16,12 @@ void browserTask(void *param)
             continue;
 
         log_d("listing path: %s", req.path);
+
+        // check if the requested path is cached and if so, send the cached version 
+        // then send LIST:DONE: as a separate msg
+        // and return
+
+        // else
 
         File dir;
         {
@@ -32,6 +40,10 @@ void browserTask(void *param)
             msgToClient("ERROR:not a directory", req.client);
             continue;
         }
+
+        static String cached;
+
+        cached = "";
 
         snprintf(chunkHeader, sizeof(chunkHeader), "LIST:%s\n", req.path);
 
@@ -69,6 +81,7 @@ void browserTask(void *param)
             // send chunk
             if (count >= MAX_ITEMS_IN_CHUNK)
             {
+                cached += chunk;
                 msgToClient(chunk.c_str(), req.client);
                 chunk = chunkHeader;
                 count = 0;
@@ -80,12 +93,20 @@ void browserTask(void *param)
 
         // send remainder
         if (count > 0)
+        {
+            cached += chunk;
             msgToClient(chunk.c_str(), req.client);
+        }
 
         dir.close();
 
-        msgToClient("LIST:DONE:", req.client);
+        msgToClient(LIST_FOOTER, req.client);
 
-        log_v("duration: %lums", millis() - startMS);
+        log_i("'%s' cached size: %d", req.path, cached.length());
+        log_i("cached: %s", cached.c_str());
+        log_i("duration: %lums", millis() - startMS);
+
+        // if (duration > 300)
+        //   cache this request.
     }
 }
