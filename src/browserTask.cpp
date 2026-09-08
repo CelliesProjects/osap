@@ -20,9 +20,7 @@ void browserTask(void *param)
 
         // check if the requested path is cached and if so, send the cached version 
         // then send LIST:DONE: as a separate msg
-        // and return
-
-        // else
+        // continue;
 
         File dir;
         {
