@@ -16,7 +16,7 @@ static FolderCacheItem *findCached(const char *path)
     return nullptr;
 }
 
-bool cacheRequest(String &cached)
+bool cacheRequest(String &response)
 {
     int index = -1;
     for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
@@ -36,14 +36,14 @@ bool cacheRequest(String &cached)
     }
 
     cache[index].path = req.path;
-    cache[index].response = std::move(cached);
+    cache[index].response = std::move(response);
     cache[index].timestamp = time(nullptr);
     return true;
 }
 
 void browserTask(void *param)
 {
-    constexpr const char *LIST_FOOTER = "LIST:DONE:";
+    constexpr const char *LIST_DONE = "LIST:DONE:";
 
     chunk.reserve(2048);
 
@@ -60,7 +60,7 @@ void browserTask(void *param)
         {
             msgToClient(item->response.c_str(), req.client);
             vTaskDelay(1);
-            msgToClient(LIST_FOOTER, req.client);
+            msgToClient(LIST_DONE, req.client);
             log_i("%d ms - '%s' served from cache", millis() - startMS, req.path);
             continue;
         }
@@ -88,8 +88,8 @@ void browserTask(void *param)
         int count = 0;
         chunk = chunkHeader;
 
-        static String cached;
-        cached = "";
+        static String cacheBuffer;
+        cacheBuffer = "";
 
         while (true)
         {
@@ -121,7 +121,7 @@ void browserTask(void *param)
             // send chunk
             if (count >= MAX_ITEMS_IN_CHUNK)
             {
-                cached += chunk;
+                cacheBuffer += chunk;
                 msgToClient(chunk.c_str(), req.client);
                 chunk = chunkHeader;
                 count = 0;
@@ -134,22 +134,22 @@ void browserTask(void *param)
         // send remainder
         if (count > 0)
         {
-            cached += chunk;
+            cacheBuffer += chunk;
             msgToClient(chunk.c_str(), req.client);
         }
 
         dir.close();
 
-        msgToClient(LIST_FOOTER, req.client);
+        msgToClient(LIST_DONE, req.client);
 
         const auto duration = millis() - startMS;
 
         if (duration < CACHE_THRESHOLD_MS)
             continue;
 
-        if (!cacheRequest(cached))
+        if (!cacheRequest(cacheBuffer))
             continue;
 
-        log_i("%d ms - '%s' is cached - size: %d bytes", duration, req.path, cached.length());
+        log_i("%d ms - '%s' is cached - size: %d bytes", duration, req.path, cacheBuffer.length());
     }
 }
