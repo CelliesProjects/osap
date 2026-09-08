@@ -16,6 +16,31 @@ static FolderCacheItem *findCached(const char *path)
     return nullptr;
 }
 
+bool cacheRequest(String &cached)
+{
+    int index = -1;
+    for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
+    {
+        if (cache[i].path == req.path || cache[i].path.isEmpty())
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+    {
+        log_w("cache has reached maximum capacity");
+        msgToClient("ERROR:Cache limit reached", req.client);
+        return false;
+    }
+
+    cache[index].path = req.path;
+    cache[index].response = std::move(cached);
+    cache[index].timestamp = time(nullptr);
+    return true;
+}
+
 void browserTask(void *param)
 {
     constexpr const char *LIST_FOOTER = "LIST:DONE:";
@@ -122,27 +147,9 @@ void browserTask(void *param)
         if (duration < CACHE_THRESHOLD_MS)
             continue;
 
-        int index = -1;
-        for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
-        {
-            if (cache[i].path == req.path || cache[i].path.isEmpty())
-            {
-                index = i;
-                break;
-            }
-        }
-
-        if (index == -1)
-        {
-            log_w("cache has reached maximum capacity");
-            msgToClient("ERROR:Cache limit reached", req.client);
+        if (!cacheRequest(cached))
             continue;
-        }
 
-        cache[index].path = req.path;
-        cache[index].response = std::move(cached);
-        cache[index].timestamp = time(nullptr);
-
-        log_i("%d ms - '%s' is cached - size: %d bytes at index %d", duration, req.path, cache[index].response.length(), index);
+        log_i("%d ms - '%s' is cached - size: %d bytes", duration, req.path, cached.length());
     }
 }
