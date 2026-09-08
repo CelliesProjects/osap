@@ -5,6 +5,17 @@ static ListRequest req;
 static String chunk;
 static FolderCacheItem cache[MAX_CACHE_ITEMS];
 
+static FolderCacheItem *findCached(const char *path)
+{
+    for (auto &item : cache)
+    {
+        if (item.path == path)
+            return &item;
+    }
+
+    return nullptr;
+}
+
 void browserTask(void *param)
 {
     constexpr const char *LIST_FOOTER = "LIST:DONE:";
@@ -18,9 +29,12 @@ void browserTask(void *param)
 
         log_d("listing path: %s", req.path);
 
-        // check if the requested path is cached and if so, send the cached version
-        // then send LIST:DONE: as a separate msg
-        // continue;
+        if (auto *item = findCached(req.path))
+        {
+            msgToClient(item->response.c_str(), req.client);
+            msgToClient(LIST_FOOTER, req.client);
+            continue;
+        }
 
         unsigned long startMS = millis();
 
@@ -110,8 +124,24 @@ void browserTask(void *param)
 
         if (duration > CACHE_THRESHOLD_MS)
         {
-            // put req.path + cached into cache
-            log_i("'%s' would be cached - size: %d bytes", req.path, cached.length());
+            int index = -1;
+            for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
+            {
+                if (cache[i].path == req.path || cache[i].path.isEmpty())
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index >= 0)
+            {
+                cache[index].path = req.path;
+                cache[index].response = std::move(cached);
+                cache[index].timestamp = time(nullptr);
+
+                log_i("'%s' cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
+            }
         }
     }
 }
