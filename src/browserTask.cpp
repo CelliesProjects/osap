@@ -111,7 +111,7 @@ void browserTask(void *param)
         if (duration > CACHE_THRESHOLD_MS)
         {
             // put req.path + cached into cache
-            log_i("'%s' would be cached", req.path);
+            log_i("'%s' would be cached - size: %d bytes", req.path, cached.length());
         }
     }
 }
