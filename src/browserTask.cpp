@@ -29,14 +29,14 @@ void browserTask(void *param)
 
         log_d("listing path: %s", req.path);
 
-        unsigned long startMS = millis();
+        const auto startMS = millis();
 
         if (auto *item = findCached(req.path))
         {
             msgToClient(item->response.c_str(), req.client);
             vTaskDelay(1);
             msgToClient(LIST_FOOTER, req.client);
-            log_i("'%s' served from cache in %d ms", req.path, millis() - startMS);
+            log_i("%d ms - '%s' served from cache", millis() - startMS, req.path);
             continue;
         }
 
@@ -65,7 +65,7 @@ void browserTask(void *param)
 
         static String cached;
         cached = "";
-        
+
         while (true)
         {
             auto client = websocketHandler.getClient(req.client);
@@ -117,35 +117,32 @@ void browserTask(void *param)
 
         msgToClient(LIST_FOOTER, req.client);
 
-        const unsigned long duration = millis() - startMS;
+        const auto duration = millis() - startMS;
 
-        log_d("'%s' cached size: %d", req.path, cached.length());
-        log_d("cached: %s", cached.c_str());
+        if (duration < CACHE_THRESHOLD_MS)
+            continue;
 
-        if (duration > CACHE_THRESHOLD_MS)
+        int index = -1;
+        for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
         {
-            int index = -1;
-            for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
+            if (cache[i].path == req.path || cache[i].path.isEmpty())
             {
-                if (cache[i].path == req.path || cache[i].path.isEmpty())
-                {
-                    index = i;
-                    break;
-                }
+                index = i;
+                break;
             }
-
-            if (index == -1)
-            {
-                log_w("cache has reached maximum capacity");
-                msgToClient("ERROR:Cache limit reached", req.client);
-                continue;
-            }
-
-            cache[index].path = req.path;
-            cache[index].response = std::move(cached);
-            cache[index].timestamp = time(nullptr);
-
-            log_i("%d ms - '%s' is cached - size: %d bytes at index %d", duration, req.path, cache[index].response.length(), index);
         }
+
+        if (index == -1)
+        {
+            log_w("cache has reached maximum capacity");
+            msgToClient("ERROR:Cache limit reached", req.client);
+            continue;
+        }
+
+        cache[index].path = req.path;
+        cache[index].response = std::move(cached);
+        cache[index].timestamp = time(nullptr);
+
+        log_i("%d ms - '%s' is cached - size: %d bytes at index %d", duration, req.path, cache[index].response.length(), index);
     }
 }
