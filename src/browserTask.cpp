@@ -29,16 +29,16 @@ void browserTask(void *param)
 
         log_d("listing path: %s", req.path);
 
+        unsigned long startMS = millis();
+
         if (auto *item = findCached(req.path))
         {
             msgToClient(item->response.c_str(), req.client);
             vTaskDelay(1);
             msgToClient(LIST_FOOTER, req.client);
-            log_i("'%s' served from cache", req.path);
+            log_i("'%s' served from cache in %d ms", req.path, millis() - startMS);
             continue;
         }
-
-        unsigned long startMS = millis();
 
         File dir;
         {
@@ -122,10 +122,11 @@ void browserTask(void *param)
 
         log_d("'%s' cached size: %d", req.path, cached.length());
         log_d("cached: %s", cached.c_str());
-        log_i("duration: %lums", duration);
 
         if (duration > CACHE_THRESHOLD_MS)
         {
+            log_i("'%s' duration: %lu ms", req.path, duration);
+
             int index = -1;
             for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
             {
@@ -136,14 +137,18 @@ void browserTask(void *param)
                 }
             }
 
-            if (index >= 0)
+            if (index == -1)
             {
-                cache[index].path = req.path;
-                cache[index].response = std::move(cached);
-                cache[index].timestamp = time(nullptr);
-
-                log_i("'%s' is cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
+                log_w("cache has reached maximum capacity");
+                msgToClient("ERROR:Cache limit reached", req.client);
+                continue;
             }
+
+            cache[index].path = req.path;
+            cache[index].response = std::move(cached);
+            cache[index].timestamp = time(nullptr);
+
+            log_i("'%s' is cached - size: %d bytes at index %d", req.path, cache[index].response.length(), index);
         }
     }
 }
