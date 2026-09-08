@@ -3,6 +3,7 @@
 static char chunkHeader[256];
 static ListRequest req;
 static String chunk;
+static FolderCacheItem cache[MAX_CACHE_ITEMS];
 
 void browserTask(void *param)
 {
