@@ -716,7 +716,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
     case PlayerCmdType::SAVE_FAVORITE:
         handleSaveFavorite(cmd);
         break;
-    
 
     case PlayerCmdType::SEND_PRESETS:
         sendPresets(cmd);
@@ -733,7 +732,6 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
     case PlayerCmdType::SET_VOLUME:
         setVolume(cmd);
         break;
-    
 
     case PlayerCmdType::SEND_VOLUME:
     {
@@ -1054,5 +1052,17 @@ void playerTask(void *param)
             websocketHandler.sendAll("PING:");
             prevHeartbeat = now;
         }
+
+#if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL == ESP_LOG_DEBUG)
+        static size_t lastFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+        const size_t currentFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+        if (currentFree < lastFree)
+        {
+            log_i("Free PSRAM: %.1f KB.\tLargest block: %.1f KB",
+                  currentFree / 1024.0,
+                  heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.0);
+            lastFree = currentFree;
+        }
+#endif
     }
 }

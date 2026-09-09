@@ -1051,6 +1051,9 @@
             for (const line of lines) {
                 if (!line) continue;
 
+                if (line.startsWith("LIST:")) // cached responses contain chunk headers that need to be skipped
+                    continue;
+
                 const type = line[0];
                 const name = line.substring(2);
 
