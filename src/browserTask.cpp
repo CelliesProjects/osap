@@ -19,6 +19,8 @@ static FolderCacheItem *findCached(const char *path)
 bool cacheRequest(String &response)
 {
     int index = -1;
+
+    // Prefer an existing entry or an unused slot.
     for (int i = 0; i < MAX_CACHE_ITEMS; ++i)
     {
         if (cache[i].path == req.path || cache[i].path.isEmpty())
@@ -28,16 +30,28 @@ bool cacheRequest(String &response)
         }
     }
 
+    // Cache is full: evict the smallest entry and if tied the oldest
     if (index == -1)
     {
-        log_w("cache has reached maximum capacity");
-        msgToClient("ERROR:Cache limit reached", req.client);
-        return false;
+        index = 0;
+
+        for (int i = 1; i < MAX_CACHE_ITEMS; ++i)
+        {
+            if (cache[i].response.length() < cache[index].response.length() ||
+                (cache[i].response.length() == cache[index].response.length() &&
+                 cache[i].timestamp < cache[index].timestamp))
+            {
+                index = i;
+            }
+        }
+
+        log_i("evicting '%s' from cache", cache[index].path.c_str());
     }
 
     cache[index].path = req.path;
     cache[index].response = std::move(response);
     cache[index].timestamp = time(nullptr);
+
     return true;
 }
 
@@ -144,12 +158,16 @@ void browserTask(void *param)
 
         const auto duration = millis() - startMS;
 
-        if (duration < CACHE_THRESHOLD_MS)
+        // todo: make sure the cacheBuffer is not somehow half filled ie check if client is not a nullptr because thats about as good as we can do? whats your take ai?
+        auto client = websocketHandler.getClient(req.client);
+
+        if (duration < CACHE_THRESHOLD_MS | !client)
             continue;
+
+
+        log_i("%d ms - '%s' qualifies for caching - size: %u bytes", duration, req.path, cacheBuffer.length());
 
         if (!cacheRequest(cacheBuffer))
             continue;
-
-        log_i("%d ms - '%s' is cached - size: %d bytes", duration, req.path, cacheBuffer.length());
     }
 }
