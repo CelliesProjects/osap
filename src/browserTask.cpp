@@ -155,9 +155,7 @@ void browserTask(void *param)
         msgToClient(LIST_DONE, req.client);
 
         const auto duration = millis() - startMS;
-
-        // todo: make sure the cacheBuffer is not somehow half filled ie check if client is not a nullptr because thats about as good as we can do? whats your take ai?
-        auto client = websocketHandler.getClient(req.client);
+        const auto client = websocketHandler.getClient(req.client);
 
         if (duration < CACHE_THRESHOLD_MS || !client)
             continue;
