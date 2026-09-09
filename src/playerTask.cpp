@@ -1053,7 +1053,7 @@ void playerTask(void *param)
             prevHeartbeat = now;
         }
 
-#if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL >= ESP_LOG_INFO)
+#if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL == ESP_LOG_DEBUG)
         static size_t lastFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         const size_t currentFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         if (currentFree < lastFree)
