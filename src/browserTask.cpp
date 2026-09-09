@@ -109,6 +109,7 @@ void browserTask(void *param)
             if (!client)
             {
                 log_w("client gone, abort listing");
+                count = 0;
                 break;
             }
 
