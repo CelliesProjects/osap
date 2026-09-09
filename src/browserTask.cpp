@@ -16,7 +16,7 @@ static FolderCacheItem *findCached(const char *path)
     return nullptr;
 }
 
-bool cacheRequest(String &response)
+static void cacheRequest(String &response)
 {
     int index = -1;
 
@@ -51,8 +51,6 @@ bool cacheRequest(String &response)
     cache[index].path = req.path;
     cache[index].response = std::move(response);
     cache[index].timestamp = time(nullptr);
-
-    return true;
 }
 
 void browserTask(void *param)
@@ -161,13 +159,11 @@ void browserTask(void *param)
         // todo: make sure the cacheBuffer is not somehow half filled ie check if client is not a nullptr because thats about as good as we can do? whats your take ai?
         auto client = websocketHandler.getClient(req.client);
 
-        if (duration < CACHE_THRESHOLD_MS | !client)
+        if (duration < CACHE_THRESHOLD_MS || !client)
             continue;
-
 
         log_i("%d ms - '%s' qualifies for caching - size: %u bytes", duration, req.path, cacheBuffer.length());
 
-        if (!cacheRequest(cacheBuffer))
-            continue;
+        cacheRequest(cacheBuffer);
     }
 }
