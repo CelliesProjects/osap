@@ -65,7 +65,7 @@ File browser cache speedup example:
 
 * The handling of 100+ SD card items takes about ~2000ms on the first request
 * Because the operation took more than 300 ms to complete the response is cached   
-* Once cached the same folder takes only 3-8 ms 
+* Once cached the same folder takes only 3-8 ms to complete
 
 Up to a 100 requests can be cached this way.  
 If the cache reaches max capacity the smallest cached item will be evicted and replaced.
