@@ -19,7 +19,7 @@ static FolderCacheItem *findCached(const char *path)
     return nullptr;
 }
 
-static void cacheRequest(String &response)
+static void cacheRequest()
 {
     int index = -1;
 
@@ -48,7 +48,7 @@ static void cacheRequest(String &response)
     }
 
     cache[index].path = req.path;
-    cache[index].response = std::move(response);
+    cache[index].response = std::move(cacheBuffer);
     cache[index].timestamp = time(nullptr);
 }
 
@@ -164,7 +164,7 @@ void browserTask(void *param)
             continue;
 
         processItems(dir);
-        
+
         dir.close();
 
         const auto duration = millis() - startMS;
@@ -175,6 +175,6 @@ void browserTask(void *param)
 
         log_i("%d ms - '%s' qualifies for caching - size: %u bytes", duration, req.path, cacheBuffer.length());
 
-        cacheRequest(cacheBuffer);
+        cacheRequest();
     }
 }
