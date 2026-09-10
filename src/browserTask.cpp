@@ -10,7 +10,10 @@ static FolderCacheItem *findCached(const char *path)
     for (auto &item : cache)
     {
         if (item.path == path)
+        {
+            item.timestamp = time(nullptr);
             return &item;
+        }
     }
 
     return nullptr;
@@ -30,19 +33,15 @@ static void cacheRequest(String &response)
         }
     }
 
-    // Cache is full: evict the smallest entry and if tied the oldest
+    // Cache is full: evict the least recently used entry
     if (index == -1)
     {
         index = 0;
 
         for (int i = 1; i < MAX_CACHE_ITEMS; ++i)
         {
-            if (cache[i].response.length() < cache[index].response.length() ||
-                (cache[i].response.length() == cache[index].response.length() &&
-                 cache[i].timestamp < cache[index].timestamp))
-            {
+            if (cache[i].timestamp < cache[index].timestamp)
                 index = i;
-            }
         }
 
         log_i("evicting '%s' from cache", cache[index].path.c_str());
