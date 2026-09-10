@@ -112,6 +112,13 @@ static void processItems(File &dir)
     msgToClient(LIST_DONE, req.client);
 }
 
+static void sendFromCache(FolderCacheItem *item)
+{
+    msgToClient(item->response.c_str(), req.client);
+    vTaskDelay(1);
+    msgToClient(LIST_DONE, req.client);
+}
+
 void browserTask(void *param)
 {
     chunk.reserve(2048);
@@ -125,10 +132,10 @@ void browserTask(void *param)
 
         if (auto *item = findCached(req.path))
         {
-            msgToClient(item->response.c_str(), req.client);
-            vTaskDelay(1);
-            msgToClient(LIST_DONE, req.client);
+            sendFromCache(item);
+
             log_i("%d ms - '%s' served from cache", millis() - startMS, req.path);
+
             continue;
         }
 
