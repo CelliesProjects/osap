@@ -7,7 +7,7 @@ A very capable audio player with:
 * MP3, M4A, AAC, OGG, and 16-bit FLAC playback
 * Playlist queue for 100 items
 * WebSocket based live UI
-* A very fast SD card filebrowser
+* A very fast **caching** SD card filebrowser
 * Radio presets 
 * Automatic adding of premium/private channels during build
 * Internet radio search with [radio-browser.info](https://www.radio-browser.info/)
@@ -48,6 +48,7 @@ A very capable audio player with:
 * Search interface for radio stations
 * Overlay "now playing" mode
 * Toast notifications and errors
+* Very fast caching file browser
 
 ### Multiple WiFi networks supported
 
@@ -58,17 +59,16 @@ This allows the same device to be used with different network setups such as a h
 
 Multiple simultaneous clients are supported and kept in sync with the player state.  
 
-SD operations are mostly handled async to keep the UI responsive.  
-File browser requests are cached if it takes over 300 ms to read and process a folder.  
+File browser requests are handled async and cached if it takes over 100 ms to process a folder.  
 
-File browser cache speedup example:
+Browser cache speedup example:
 
 * The handling of 100+ SD card items takes about ~2000ms on the first request
-* Because the operation took more than 300 ms to complete the response is cached   
+* Because the operation took more than 100 ms to complete the response is cached   
 * Once cached the same folder takes only 3-8 ms to complete
 
 Up to a 100 requests can be cached this way.  
-If the cache reaches max capacity the policy is to replace the least recently used item.
+If the cache reaches max capacity the eviction policy is to replace the least recently used item.
 
 ---
 
