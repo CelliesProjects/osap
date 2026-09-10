@@ -13,11 +13,14 @@
 constexpr int MAX_ITEMS_IN_CHUNK = 4;
 
 constexpr size_t MAX_CACHE_ITEMS = 100;
-constexpr unsigned long CACHE_THRESHOLD_MS = 300;
+constexpr unsigned long CACHE_THRESHOLD_MS = 100;
+constexpr const char *LIST_DONE = "LIST:DONE:";
 
 extern SemaphoreHandle_t sdMutex;
 extern QueueHandle_t browserQueue;
 extern PsychicWebSocketHandler websocketHandler;
 extern void msgToClient(const char *msg, PsychicWebSocketClient *c);
+
+String cacheBuffer;
 
 void browserTask(void *param);

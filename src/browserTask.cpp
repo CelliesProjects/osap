@@ -52,18 +52,69 @@ static void cacheRequest(String &response)
     cache[index].timestamp = time(nullptr);
 }
 
+static void handleFolder(File &dir)
+{
+    int count = 0;
+
+    while (true)
+    {
+        auto client = websocketHandler.getClient(req.client);
+        if (!client)
+        {
+            log_w("client gone, abort listing");
+            count = 0;
+            break;
+        }
+
+        File entry;
+        {
+            ScopedMutex lock(sdMutex);
+            entry = dir.openNextFile();
+        }
+
+        if (!entry)
+            break;
+
+        if (entry.name()[0] == '.') // hide system folders
+            continue;
+
+        chunk += (entry.isDirectory() ? "D:" : "F:");
+        chunk += entry.name();
+        chunk += '\n';
+
+        count++;
+
+        // send chunk
+        if (count >= MAX_ITEMS_IN_CHUNK)
+        {
+            cacheBuffer += chunk;
+            msgToClient(chunk.c_str(), req.client);
+            chunk = chunkHeader;
+            count = 0;
+            vPortYield();
+        }
+
+        entry.close();
+    }
+
+    // send remainder
+    if (count > 0)
+    {
+        cacheBuffer += chunk;
+        msgToClient(chunk.c_str(), req.client);
+    }
+
+    msgToClient(LIST_DONE, req.client);
+}
+
 void browserTask(void *param)
 {
-    constexpr const char *LIST_DONE = "LIST:DONE:";
-
     chunk.reserve(2048);
 
-    while (1)
+    while (true)
     {
         if (xQueueReceive(browserQueue, &req, portMAX_DELAY) != pdTRUE)
             continue;
-
-        log_d("listing path: %s", req.path);
 
         const auto startMS = millis();
 
@@ -96,63 +147,12 @@ void browserTask(void *param)
 
         snprintf(chunkHeader, sizeof(chunkHeader), "LIST:%s\n", req.path);
 
-        int count = 0;
         chunk = chunkHeader;
-
-        static String cacheBuffer;
         cacheBuffer = "";
 
-        while (true)
-        {
-            auto client = websocketHandler.getClient(req.client);
-            if (!client)
-            {
-                log_w("client gone, abort listing");
-                count = 0;
-                break;
-            }
-
-            File entry;
-            {
-                ScopedMutex lock(sdMutex);
-                entry = dir.openNextFile();
-            }
-
-            if (!entry)
-                break;
-
-            if (entry.name()[0] == '.') // hide system folders
-                continue;
-
-            chunk += (entry.isDirectory() ? "D:" : "F:");
-            chunk += entry.name();
-            chunk += '\n';
-
-            count++;
-
-            // send chunk
-            if (count >= MAX_ITEMS_IN_CHUNK)
-            {
-                cacheBuffer += chunk;
-                msgToClient(chunk.c_str(), req.client);
-                chunk = chunkHeader;
-                count = 0;
-                vPortYield();
-            }
-
-            entry.close();
-        }
-
-        // send remainder
-        if (count > 0)
-        {
-            cacheBuffer += chunk;
-            msgToClient(chunk.c_str(), req.client);
-        }
+        handleFolder(dir);
 
         dir.close();
-
-        msgToClient(LIST_DONE, req.client);
 
         const auto duration = millis() - startMS;
         const auto client = websocketHandler.getClient(req.client);
