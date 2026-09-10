@@ -52,8 +52,13 @@ static void cacheRequest(String &response)
     cache[index].timestamp = time(nullptr);
 }
 
-static void handleFolder(File &dir)
+static void processItems(File &dir)
 {
+    snprintf(chunkHeader, sizeof(chunkHeader), "LIST:%s\n", req.path);
+
+    chunk = chunkHeader;
+    cacheBuffer = "";
+
     int count = 0;
 
     while (true)
@@ -145,12 +150,7 @@ void browserTask(void *param)
             continue;
         }
 
-        snprintf(chunkHeader, sizeof(chunkHeader), "LIST:%s\n", req.path);
-
-        chunk = chunkHeader;
-        cacheBuffer = "";
-
-        handleFolder(dir);
+        processItems(dir);
 
         dir.close();
 
