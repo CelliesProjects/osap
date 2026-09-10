@@ -19,7 +19,7 @@ static FolderCacheItem *findCached(const char *path)
     return nullptr;
 }
 
-static void cacheRequest(String &response)
+static void cacheRequest()
 {
     int index = -1;
 
@@ -48,7 +48,7 @@ static void cacheRequest(String &response)
     }
 
     cache[index].path = req.path;
-    cache[index].response = std::move(response);
+    cache[index].response = std::move(cacheBuffer);
     cache[index].timestamp = time(nullptr);
 }
 
@@ -112,11 +112,32 @@ static void processItems(File &dir)
     msgToClient(LIST_DONE, req.client);
 }
 
-static void sendFromCache(FolderCacheItem *item)
+static void serveFromCache(FolderCacheItem *item)
 {
     msgToClient(item->response.c_str(), req.client);
     vTaskDelay(1);
     msgToClient(LIST_DONE, req.client);
+}
+
+static bool openFolder(File &dir)
+{
+    {
+        ScopedMutex lock(sdMutex);
+        dir = SD.open(req.path);
+    }
+
+    if (!dir || !dir.isDirectory())
+    {
+        if (strlen(req.path) == 1)
+        {
+            msgToClient("ERROR:SD card not mounted", req.client);
+            return false;
+        }
+
+        msgToClient("ERROR:not a directory", req.client);
+        return false;
+    }
+    return true;
 }
 
 void browserTask(void *param)
@@ -132,30 +153,15 @@ void browserTask(void *param)
 
         if (auto *item = findCached(req.path))
         {
-            sendFromCache(item);
-
+            serveFromCache(item);
             log_i("%d ms - '%s' served from cache", millis() - startMS, req.path);
-
             continue;
         }
 
         File dir;
-        {
-            ScopedMutex lock(sdMutex);
-            dir = SD.open(req.path);
-        }
 
-        if (!dir || !dir.isDirectory())
-        {
-            if (strlen(req.path) == 1)
-            {
-                msgToClient("ERROR:SD card not mounted", req.client);
-                continue;
-            }
-
-            msgToClient("ERROR:not a directory", req.client);
+        if (!openFolder(dir))
             continue;
-        }
 
         processItems(dir);
 
@@ -169,6 +175,6 @@ void browserTask(void *param)
 
         log_i("%d ms - '%s' qualifies for caching - size: %u bytes", duration, req.path, cacheBuffer.length());
 
-        cacheRequest(cacheBuffer);
+        cacheRequest();
     }
 }
