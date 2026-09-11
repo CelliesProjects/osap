@@ -174,7 +174,7 @@ void setup()
     createTask(playerTask, "playerTask", 1024 * 5, 7);
     createTask(browserTask, "browserTask", 4096, 0);
     createTask(searchTask, "searchTask", 1024 * 5, 0);
-    createTask(serverTask, "serverTask", 4096, 2);
+    createTask(serverTask, "serverTask", 4096, 0);
 
     vTaskDelete(nullptr);
 }
