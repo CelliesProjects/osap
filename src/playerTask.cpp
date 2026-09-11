@@ -436,7 +436,6 @@ static bool saveFavorite(const PlayerCmd &cmd)
 
     {
         ScopedMutex lock(sdMutex);
-
         f = SD.open(path, FILE_WRITE, true);
     }
 
@@ -448,7 +447,6 @@ static bool saveFavorite(const PlayerCmd &cmd)
 
     {
         ScopedMutex lock(sdMutex);
-
         f.print(contents);
         f.close();
     }
@@ -505,10 +503,7 @@ static bool loadFavorite(const char *name, PlaylistItem &item)
             favType = line.substring(5);
     }
 
-    {
-        ScopedMutex lock(sdMutex);
-        file.close();
-    }
+    file.close();
 
     if (favName.isEmpty() || favUrl.isEmpty())
     {
