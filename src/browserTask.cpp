@@ -154,7 +154,7 @@ void browserTask(void *param)
         if (auto *item = findCached())
         {
             serveFromCache(item);
-            log_i("cache hit: '%s' - %d ms", req.path, millis() - startMS);
+            log_i("cache hit: '%s', %d ms", req.path, millis() - startMS);
             continue;
         }
 
