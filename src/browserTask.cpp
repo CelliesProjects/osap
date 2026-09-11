@@ -5,11 +5,11 @@ static ListRequest req;
 static String chunk;
 static FolderCacheItem cache[MAX_CACHE_ITEMS];
 
-static FolderCacheItem *findCached(const char *path)
+static FolderCacheItem *findCached()
 {
     for (auto &item : cache)
     {
-        if (item.path == path)
+        if (item.path == req.path)
         {
             item.timestamp = time(nullptr);
             return &item;
@@ -151,10 +151,10 @@ void browserTask(void *param)
 
         const auto startMS = millis();
 
-        if (auto *item = findCached(req.path))
+        if (auto *item = findCached())
         {
             serveFromCache(item);
-            log_i("%d ms - '%s' served from cache", millis() - startMS, req.path);
+            log_i("cache hit: '%s' - %d ms", req.path, millis() - startMS);
             continue;
         }
 
@@ -173,7 +173,7 @@ void browserTask(void *param)
         if (duration < CACHE_THRESHOLD_MS || !client)
             continue;
 
-        log_i("%d ms - '%s' qualifies for caching - size: %u bytes", duration, req.path, cacheBuffer.length());
+        log_i("caching '%s', %d ms, %u bytes", req.path, duration, cacheBuffer.length());
 
         cacheRequest();
     }
