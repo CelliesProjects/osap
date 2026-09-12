@@ -37,7 +37,7 @@ static String sanitizeStationName(const char *input)
         if (isalnum((unsigned char)c))
             sanitized += c;
 
-        else if (c == ' ' || c == '-' || c == '+' || c == '_' || c == '.' || c == '[' || c == ']')
+        else if (c == ' ' || c == '-' || c == '+' || c == '.' || c == '[' || c == ']')
             sanitized += c;
 
         else
@@ -144,7 +144,7 @@ static const char *resolveRadioBrowserServer()
     if (apiServer[0] && now >= lastResolveTime && (now - lastResolveTime) < CACHE_TIME_S)
         return apiServer;
 
-    resolverHttp.setConnectTimeout(TIMEOUT_MS);
+    //resolverHttp.setConnectTimeout(TIMEOUT_MS);
 
     if (!resolverHttp.begin(resolverClient, "https://all.api.radio-browser.info/json/servers"))
     {
@@ -153,7 +153,7 @@ static const char *resolveRadioBrowserServer()
     }
 
     resolverHttp.setUserAgent(USER_AGENT);
-    resolverHttp.setTimeout(TIMEOUT_MS);
+    //resolverHttp.setTimeout(TIMEOUT_MS);
 
     const int code = resolverHttp.GET();
     if (code <= 0)
@@ -265,7 +265,7 @@ void searchTask(void *param)
 
         log_v("connecting to %s", msgBuffer);
 
-        http.setConnectTimeout(TIMEOUT_MS);
+        //http.setConnectTimeout(TIMEOUT_MS);
 
         if (!http.begin(client, msgBuffer))
         {
@@ -274,7 +274,7 @@ void searchTask(void *param)
         }
 
         http.setUserAgent(USER_AGENT);
-        http.setTimeout(TIMEOUT_MS);
+        //http.setTimeout(TIMEOUT_MS);
 
         const int code = http.GET();
 
