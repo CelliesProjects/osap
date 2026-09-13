@@ -1019,7 +1019,6 @@
 
     <!-- file browser stuff -->
     <script>
-        let folderBusy = false;
         let goingUp = false;
         let scrollPos = [];
         let selectedIndex = [];
@@ -1043,7 +1042,6 @@
                     up.textContent = "..";
 
                     up.addEventListener("click", () => {
-                        folderBusy = true;
                         goingUp = true;
                         container.classList.add("disabled");
                         sendWS(`REQ:LIST:${parentPath(path)}`);
@@ -1067,6 +1065,7 @@
         }
 
         function createFolderItem(type, name, path) {
+            const container = document.getElementById("LIBRARY");
             const el = document.createElement("div");
 
             el.classList.add("listitem");
@@ -1087,19 +1086,10 @@
 
             // main click (row)
             el.addEventListener("click", () => {
-                if (folderBusy) {
-                    showToast("Please wait, folder loading", "err");
-                    return;
-                }
-
                 if (type === "D") {
-                    folderBusy = true;
-                    const container = document.getElementById("LIBRARY");
-
                     container.classList.add("disabled");
                     selectedIndex.push(Array.from(container.children).indexOf(el));
                     scrollPos.push(container.scrollTop);
-
                     sendWS(`REQ:LIST:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:ADD:${fullPath}`);
@@ -1109,9 +1099,9 @@
             // play button click (separate!)
             playbtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-
                 if (type === "D") {
-                    // optional: play folder 
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    el.classList.add("active");
                     sendWS(`LIBRARY:PLAY:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:PLAY:${fullPath}`);
@@ -1198,7 +1188,6 @@
                     if (item)
                         item.classList.add("active");
                 }
-                folderBusy = false;
                 return;
             }
 
