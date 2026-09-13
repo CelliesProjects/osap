@@ -3,10 +3,9 @@
 static constexpr int MAX_ITEMS = 30;
 static constexpr int MAX_SEARCHNAME_LENGTH = 72;
 static constexpr int MAX_SANITIZED_LENGTH = 64;
-static constexpr int TIMEOUT_MS = 2000;
 
-static HTTPClient http;
-static WiFiClientSecure client;
+static HTTPClient searchHttp;
+static WiFiClientSecure searchClient;
 static SearchRequest req;
 static char msgBuffer[512];
 static String sanitized;
@@ -144,16 +143,11 @@ static const char *resolveRadioBrowserServer()
     if (apiServer[0] && now >= lastResolveTime && (now - lastResolveTime) < CACHE_TIME_S)
         return apiServer;
 
-    //resolverHttp.setConnectTimeout(TIMEOUT_MS);
-
     if (!resolverHttp.begin(resolverClient, "https://all.api.radio-browser.info/json/servers"))
     {
         log_w("resolver connect failed");
         return apiServer[0] ? apiServer : nullptr;
     }
-
-    resolverHttp.setUserAgent(USER_AGENT);
-    //resolverHttp.setTimeout(TIMEOUT_MS);
 
     const int code = resolverHttp.GET();
     if (code <= 0)
@@ -219,7 +213,10 @@ void searchTask(void *param)
     sanitized.reserve(MAX_SANITIZED_LENGTH * 2);
 
     resolverClient.setInsecure();
-    client.setInsecure();
+    resolverHttp.setUserAgent(USER_AGENT);
+
+    searchClient.setInsecure();
+    searchHttp.setUserAgent(USER_AGENT);
 
     while (1)
     {
@@ -265,23 +262,18 @@ void searchTask(void *param)
 
         log_v("connecting to %s", msgBuffer);
 
-        //http.setConnectTimeout(TIMEOUT_MS);
-
-        if (!http.begin(client, msgBuffer))
+        if (!searchHttp.begin(searchClient, msgBuffer))
         {
             msgToClient("ERROR:Search could not connect", wsClient);
             continue;
         }
 
-        http.setUserAgent(USER_AGENT);
-        //http.setTimeout(TIMEOUT_MS);
-
-        const int code = http.GET();
+        const int code = searchHttp.GET();
 
         // network / transport error
         if (code <= 0)
         {
-            http.end();
+            searchHttp.end();
 
             snprintf(msgBuffer, sizeof(msgBuffer), "ERROR:Search failed: %s", HTTPClient::errorToString(code).c_str());
             msgToClient(msgBuffer, wsClient);
@@ -291,16 +283,16 @@ void searchTask(void *param)
         // server unhappy
         if (code != HTTP_CODE_OK)
         {
-            http.end();
+            searchHttp.end();
 
             snprintf(msgBuffer, sizeof(msgBuffer), "ERROR:Search server returned HTTP %d", code);
             msgToClient(msgBuffer, wsClient);
             continue;
         }
 
-        const String payload = http.getString();
+        const String payload = searchHttp.getString();
 
-        http.end();
+        searchHttp.end();
 
         if (payload.isEmpty())
         {
