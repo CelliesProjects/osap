@@ -851,16 +851,12 @@
 
                 // add to playlist
                 item.addEventListener("click", () => {
-                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
-                    item.classList.add("active");
                     sendWS(`FAVORITE:ADD:${name}`);
                 });
 
                 // play immediately
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
-                    item.classList.add("active");
                     sendWS(`FAVORITE:PLAY:${name}`);
                 });
 
