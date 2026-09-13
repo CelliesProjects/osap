@@ -10,9 +10,6 @@ static SearchRequest req;
 static char msgBuffer[512];
 static String sanitized;
 
-static HTTPClient resolverHttp;
-static WiFiClientSecure resolverClient;
-
 static constexpr uint32_t CACHE_TIME_S = 6UL * 60UL * 60UL;
 static constexpr const char *USER_AGENT = "OSAudioPlayer/0.1 ESP32 +https://github.com/celliesprojects/osap";
 
@@ -143,39 +140,39 @@ static const char *resolveRadioBrowserServer()
     if (apiServer[0] && now >= lastResolveTime && (now - lastResolveTime) < CACHE_TIME_S)
         return apiServer;
 
-    if (!resolverHttp.begin(resolverClient, "https://all.api.radio-browser.info/json/servers"))
+    if (!searchHttp.begin(searchClient, "https://all.api.radio-browser.info/json/servers"))
     {
         log_w("resolver connect failed");
         return apiServer[0] ? apiServer : nullptr;
     }
 
-    const int code = resolverHttp.GET();
+    const int code = searchHttp.GET();
     if (code <= 0)
     {
         log_w("resolver failed: %s", HTTPClient::errorToString(code).c_str());
-        resolverHttp.end();
+        searchHttp.end();
         return apiServer[0] ? apiServer : nullptr;
     }
 
     if (code != HTTP_CODE_OK)
     {
         log_w("resolver returned error: %i", code);
-        resolverHttp.end();
+        searchHttp.end();
         return apiServer[0] ? apiServer : nullptr;
     }
 
-    if (resolverHttp.getSize() < 1)
+    if (searchHttp.getSize() < 1)
     {
         log_w("resolver returned empty response");
-        resolverHttp.end();
+        searchHttp.end();
         return apiServer[0] ? apiServer : nullptr;
     }
 
     JsonDocument doc;
 
-    const DeserializationError err = deserializeJson(doc, resolverHttp.getStream());
+    const DeserializationError err = deserializeJson(doc, searchHttp.getStream());
 
-    resolverHttp.end();
+    searchHttp.end();
 
     if (err)
     {
@@ -211,9 +208,6 @@ void searchTask(void *param)
     log_d("searchTask running");
 
     sanitized.reserve(MAX_SANITIZED_LENGTH * 2);
-
-    resolverClient.setInsecure();
-    resolverHttp.setUserAgent(USER_AGENT);
 
     searchClient.setInsecure();
     searchHttp.setUserAgent(USER_AGENT);
