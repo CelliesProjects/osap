@@ -851,14 +851,16 @@
 
                 // add to playlist
                 item.addEventListener("click", () => {
-                    console.log("Add favorite:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS(`FAVORITE:ADD:${name}`);
                 });
 
                 // play immediately
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    console.log("Play favorite:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS(`FAVORITE:PLAY:${name}`);
                 });
 
@@ -964,7 +966,6 @@
 
                 // ---- add to playlist ----
                 item.addEventListener("click", () => {
-                    console.log("Add search result:", name);
                     sendWS(`SEARCH:ADD:${name}${US}${url}`);
                 });
 
@@ -972,7 +973,6 @@
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
 
-                    console.log("Play search result:", name);
                     sendWS(`SEARCH:PLAY:${name}${US}${url}`);
                 });
 
