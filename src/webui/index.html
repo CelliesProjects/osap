@@ -845,20 +845,21 @@
                 // delete favorite
                 deletebtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    console.log("Delete favorite:", name);
                     sendWS(`FAVORITE:DELETE:${name}`);
                 });
 
                 // add to playlist
                 item.addEventListener("click", () => {
-                    console.log("Add favorite:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");                    
                     sendWS(`FAVORITE:ADD:${name}`);
                 });
 
                 // play immediately
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    console.log("Play favorite:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");                    
                     sendWS(`FAVORITE:PLAY:${name}`);
                 });
 
@@ -894,14 +895,16 @@
                 item.dataset.index = Number(index);
 
                 item.addEventListener("click", () => {
-                    console.log("Add preset:", index, name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS("PRESET:ADD:" + index);
                 });
 
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
 
-                    console.log("Play preset:", index, name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS("PRESET:PLAY:" + index);
                 });
 
@@ -964,7 +967,8 @@
 
                 // ---- add to playlist ----
                 item.addEventListener("click", () => {
-                    console.log("Add search result:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS(`SEARCH:ADD:${name}${US}${url}`);
                 });
 
@@ -972,7 +976,8 @@
                 playbtn.addEventListener("click", (e) => {
                     e.stopPropagation();
 
-                    console.log("Play search result:", name);
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    item.classList.add("active");
                     sendWS(`SEARCH:PLAY:${name}${US}${url}`);
                 });
 
@@ -1067,6 +1072,7 @@
         }
 
         function createFolderItem(type, name, path) {
+            const container = document.getElementById("LIBRARY");
             const el = document.createElement("div");
 
             el.classList.add("listitem");
@@ -1094,8 +1100,6 @@
 
                 if (type === "D") {
                     folderBusy = true;
-                    const container = document.getElementById("LIBRARY");
-
                     container.classList.add("disabled");
                     selectedIndex.push(Array.from(container.children).indexOf(el));
                     scrollPos.push(container.scrollTop);
@@ -1111,7 +1115,8 @@
                 e.stopPropagation();
 
                 if (type === "D") {
-                    // optional: play folder 
+                    container.querySelectorAll(".active").forEach(item => item.classList.remove("active"));
+                    el.classList.add("active");
                     sendWS(`LIBRARY:PLAY:${fullPath}`);
                 } else {
                     sendWS(`LIBRARY:PLAY:${fullPath}`);
