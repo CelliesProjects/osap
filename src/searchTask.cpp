@@ -6,7 +6,7 @@ static constexpr int MAX_SANITIZED_LENGTH = 64;
 
 static HTTPClient searchHttp;
 static WiFiClientSecure searchClient;
-static SearchRequest req;
+static SearchRequest searchReq;
 static char msgBuffer[512];
 static String sanitized;
 
@@ -59,7 +59,7 @@ static void composeResult(JsonDocument &doc, String &result)
     snprintf(msgBuffer,
              sizeof(msgBuffer),
              "SEARCHRESULT:%d:%d\n",
-             req.page,
+             searchReq.page,
              MAX_ITEMS);
 
     result += msgBuffer;
@@ -216,15 +216,15 @@ void searchTask(void *param)
     {
         log_v("stack high water mark: %i", uxTaskGetStackHighWaterMark(NULL));
 
-        if (xQueueReceive(searchQueue, &req, portMAX_DELAY) != pdTRUE)
+        if (xQueueReceive(searchQueue, &searchReq, portMAX_DELAY) != pdTRUE)
             continue;
 
         log_v("processing request for page=%d max %d items query='%s'",
-              req.page,
+              searchReq.page,
               MAX_ITEMS,
-              req.query);
+              searchReq.query);
 
-        PsychicWebSocketClient *wsClient = websocketHandler.getClient(req.client);
+        PsychicWebSocketClient *wsClient = websocketHandler.getClient(searchReq.client);
         if (!wsClient)
             continue;
 
@@ -235,11 +235,11 @@ void searchTask(void *param)
             continue;
         }
 
-        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Started '%s' page '%i' search", req.query, req.page + 1);
+        snprintf(msgBuffer, sizeof(msgBuffer), "MESSAGE:Started '%s' page '%i' search", searchReq.query, searchReq.page + 1);
         msgToClient(msgBuffer, wsClient);
 
-        const int offset = req.page * MAX_ITEMS;
-        const String encoded = urlEncode(req.query);
+        const int offset = searchReq.page * MAX_ITEMS;
+        const String encoded = urlEncode(searchReq.query);
 
         snprintf(msgBuffer, sizeof(msgBuffer),
                  "https://%s/json/stations/search?"
