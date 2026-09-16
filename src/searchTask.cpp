@@ -7,6 +7,9 @@ static constexpr int MAX_SANITIZED_LENGTH = 64;
 static HTTPClient searchHttp;
 static WiFiClientSecure searchClient;
 static SearchRequest searchReq;
+static String searchPayload;
+static String searchResult;
+
 static char msgBuffer[512];
 static String sanitized;
 
@@ -16,6 +19,24 @@ static constexpr const char *USER_AGENT = "OSAudioPlayer/0.1 ESP32 +https://gith
 static char apiServer[64] = "";
 static uint32_t lastResolveTime = 0;
 static int foundResults = 0;
+
+struct SpiRamAllocator : ArduinoJson::Allocator
+{
+    void *allocate(size_t size) override
+    {
+        return heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+    }
+
+    void deallocate(void *pointer) override
+    {
+        heap_caps_free(pointer);
+    }
+
+    void *reallocate(void *ptr, size_t new_size) override
+    {
+        return heap_caps_realloc(ptr, new_size, MALLOC_CAP_SPIRAM);
+    }
+};
 
 static String sanitizeStationName(const char *input)
 {
@@ -54,7 +75,6 @@ static String sanitizeStationName(const char *input)
 
 static void composeResult(JsonDocument &doc, String &result)
 {
-    result.reserve(4096);
 
     snprintf(msgBuffer,
              sizeof(msgBuffer),
@@ -168,7 +188,8 @@ static const char *resolveRadioBrowserServer()
         return apiServer[0] ? apiServer : nullptr;
     }
 
-    JsonDocument doc;
+    SpiRamAllocator allocator;
+    JsonDocument doc(&allocator);
 
     const DeserializationError err = deserializeJson(doc, searchHttp.getStream());
 
@@ -207,10 +228,21 @@ void searchTask(void *param)
 {
     log_d("searchTask running");
 
+    searchPayload.reserve(1025 * 50);
     sanitized.reserve(MAX_SANITIZED_LENGTH * 2);
+    searchResult.reserve(4096);
 
     searchClient.setInsecure();
     searchHttp.setUserAgent(USER_AGENT);
+
+    SpiRamAllocator allocator;
+    JsonDocument filter(&allocator);
+
+    filter[0]["name"] = true;
+    filter[0]["url_resolved"] = true;
+    filter[0]["codec"] = true;
+    filter[0]["hls"] = true;
+    filter[0]["bitrate"] = true;
 
     while (1)
     {
@@ -284,31 +316,24 @@ void searchTask(void *param)
             continue;
         }
 
-        const String payload = searchHttp.getString();
+        searchPayload.clear();
+        searchPayload = searchHttp.getString();
 
         searchHttp.end();
 
-        if (payload.isEmpty())
+        if (searchPayload.isEmpty())
         {
             msgToClient("ERROR:Search returned no data", wsClient);
             continue;
         }
 
-        log_v("search payload size: %u", payload.length());
+        log_v("search payload size: %u", searchPayload.length());
 
-        JsonDocument filter;
-
-        filter[0]["name"] = true;
-        filter[0]["url_resolved"] = true;
-        filter[0]["codec"] = true;
-        filter[0]["hls"] = true;
-        filter[0]["bitrate"] = true;
-
-        JsonDocument doc;
+        JsonDocument doc(&allocator);
 
         const DeserializationError err =
             deserializeJson(doc,
-                            payload,
+                            searchPayload,
                             DeserializationOption::Filter(filter));
 
         if (err)
@@ -318,9 +343,9 @@ void searchTask(void *param)
             continue;
         }
 
-        String result;
-        composeResult(doc, result);
-        msgToClient(result.c_str(), wsClient);
+        searchResult.clear();
+        composeResult(doc, searchResult);
+        msgToClient(searchResult.c_str(), wsClient);
 
         const bool multiPage = foundResults > MAX_ITEMS;
 
