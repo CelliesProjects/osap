@@ -9,7 +9,6 @@ static WiFiClientSecure searchClient;
 static SearchRequest searchReq;
 static String searchPayload;
 static String searchResult;
-static JsonDocument filter;
 
 static char msgBuffer[512];
 static String sanitized;
@@ -20,6 +19,24 @@ static constexpr const char *USER_AGENT = "OSAudioPlayer/0.1 ESP32 +https://gith
 static char apiServer[64] = "";
 static uint32_t lastResolveTime = 0;
 static int foundResults = 0;
+
+struct SpiRamAllocator : ArduinoJson::Allocator
+{
+    void *allocate(size_t size) override
+    {
+        return heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+    }
+
+    void deallocate(void *pointer) override
+    {
+        heap_caps_free(pointer);
+    }
+
+    void *reallocate(void *ptr, size_t new_size) override
+    {
+        return heap_caps_realloc(ptr, new_size, MALLOC_CAP_SPIRAM);
+    }
+};
 
 static String sanitizeStationName(const char *input)
 {
@@ -171,7 +188,8 @@ static const char *resolveRadioBrowserServer()
         return apiServer[0] ? apiServer : nullptr;
     }
 
-    JsonDocument doc;
+    SpiRamAllocator allocator;
+    JsonDocument doc(&allocator);
 
     const DeserializationError err = deserializeJson(doc, searchHttp.getStream());
 
@@ -216,6 +234,9 @@ void searchTask(void *param)
 
     searchClient.setInsecure();
     searchHttp.setUserAgent(USER_AGENT);
+
+    SpiRamAllocator allocator;
+    JsonDocument filter(&allocator);
 
     filter[0]["name"] = true;
     filter[0]["url_resolved"] = true;
@@ -308,7 +329,7 @@ void searchTask(void *param)
 
         log_i("search payload size: %u", searchPayload.length());
 
-        JsonDocument doc;
+        JsonDocument doc(&allocator);
 
         const DeserializationError err =
             deserializeJson(doc,
