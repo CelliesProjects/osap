@@ -7,6 +7,10 @@ static constexpr int MAX_SANITIZED_LENGTH = 64;
 static HTTPClient searchHttp;
 static WiFiClientSecure searchClient;
 static SearchRequest searchReq;
+static String searchPayload;
+static String searchResult;
+static JsonDocument filter;
+
 static char msgBuffer[512];
 static String sanitized;
 
@@ -54,7 +58,6 @@ static String sanitizeStationName(const char *input)
 
 static void composeResult(JsonDocument &doc, String &result)
 {
-    result.reserve(4096);
 
     snprintf(msgBuffer,
              sizeof(msgBuffer),
@@ -207,10 +210,18 @@ void searchTask(void *param)
 {
     log_d("searchTask running");
 
+    searchPayload.reserve(1025 * 50);
     sanitized.reserve(MAX_SANITIZED_LENGTH * 2);
+    searchResult.reserve(4096);
 
     searchClient.setInsecure();
     searchHttp.setUserAgent(USER_AGENT);
+
+    filter[0]["name"] = true;
+    filter[0]["url_resolved"] = true;
+    filter[0]["codec"] = true;
+    filter[0]["hls"] = true;
+    filter[0]["bitrate"] = true;
 
     while (1)
     {
@@ -284,31 +295,24 @@ void searchTask(void *param)
             continue;
         }
 
-        const String payload = searchHttp.getString();
+        searchPayload.clear();
+        searchPayload = searchHttp.getString();
 
         searchHttp.end();
 
-        if (payload.isEmpty())
+        if (searchPayload.isEmpty())
         {
             msgToClient("ERROR:Search returned no data", wsClient);
             continue;
         }
 
-        log_v("search payload size: %u", payload.length());
-
-        JsonDocument filter;
-
-        filter[0]["name"] = true;
-        filter[0]["url_resolved"] = true;
-        filter[0]["codec"] = true;
-        filter[0]["hls"] = true;
-        filter[0]["bitrate"] = true;
+        log_i("search payload size: %u", searchPayload.length());
 
         JsonDocument doc;
 
         const DeserializationError err =
             deserializeJson(doc,
-                            payload,
+                            searchPayload,
                             DeserializationOption::Filter(filter));
 
         if (err)
@@ -318,9 +322,9 @@ void searchTask(void *param)
             continue;
         }
 
-        String result;
-        composeResult(doc, result);
-        msgToClient(result.c_str(), wsClient);
+        searchResult.clear();
+        composeResult(doc, searchResult);
+        msgToClient(searchResult.c_str(), wsClient);
 
         const bool multiPage = foundResults > MAX_ITEMS;
 
