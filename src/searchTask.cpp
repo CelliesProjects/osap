@@ -327,7 +327,7 @@ void searchTask(void *param)
             continue;
         }
 
-        log_i("search payload size: %u", searchPayload.length());
+        log_v("search payload size: %u", searchPayload.length());
 
         JsonDocument doc(&allocator);
 
