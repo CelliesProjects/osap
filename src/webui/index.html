@@ -843,14 +843,14 @@
                 item.appendChild(playbtn);
 
                 deletebtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    showToast("Long press to delete", "err");
+                    e.stopPropagation();                    
                 });
 
                 let deletePressTimer = null;
 
-                // delete favorite on longpress
+                // delete favorite on long press
                 deletebtn.addEventListener("pointerdown", () => {
+                    showToast("Long press to delete", "err");
                     deletePressTimer = setTimeout(() => {
                         deletePressTimer = null;
                         sendWS(`FAVORITE:DELETE:${name}`);
