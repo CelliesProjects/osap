@@ -842,11 +842,40 @@
                 item.appendChild(label);
                 item.appendChild(playbtn);
 
-                // delete favorite
                 deletebtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    console.log("Delete favorite:", name);
-                    sendWS(`FAVORITE:DELETE:${name}`);
+                    showToast("Long press to delete", "err");
+                });
+
+                let deletePressTimer = null;
+
+                // delete favorite on longpress
+                deletebtn.addEventListener("pointerdown", () => {
+                    deletePressTimer = setTimeout(() => {
+                        deletePressTimer = null;
+                        sendWS(`FAVORITE:DELETE:${name}`);
+                    }, 1000);
+                });
+
+                deletebtn.addEventListener("pointerup", () => {
+                    if (deletePressTimer) {
+                        clearTimeout(deletePressTimer);
+                        deletePressTimer = null;
+                    }
+                });
+
+                deletebtn.addEventListener("pointerleave", () => {
+                    if (deletePressTimer) {
+                        clearTimeout(deletePressTimer);
+                        deletePressTimer = null;
+                    }
+                });
+
+                deletebtn.addEventListener("pointercancel", () => {
+                    if (deletePressTimer) {
+                        clearTimeout(deletePressTimer);
+                        deletePressTimer = null;
+                    }
                 });
 
                 // add to playlist
