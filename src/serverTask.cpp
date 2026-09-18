@@ -523,7 +523,7 @@ static void wsOpenHandler(PsychicWebSocketClient *client)
             PlayerCmdType::SEND_VOLUME,
             PlayerCmdType::SEND_PLAYLIST,
             PlayerCmdType::SEND_STREAMTITLE,
-        };
+    };
 
     for (const auto &req : requests)
     {
@@ -698,7 +698,19 @@ void serverTask(void *param)
 
     while (1)
     {
-        runWiFiMulti();
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        static time_t prevHeartbeat = 0;
+        const time_t now = time(nullptr);
+        if (now != prevHeartbeat)
+        {
+            websocketHandler.sendAll("PING:");
+            prevHeartbeat = now;
+        }
+
+        static auto lastRun = millis();
+        if (millis() - lastRun > 3000)
+        {
+            runWiFiMulti();
+            lastRun = millis();
+        }
     }
 }
