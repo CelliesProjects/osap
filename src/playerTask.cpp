@@ -1040,14 +1040,6 @@ void playerTask(void *param)
             streamTitle = "";
         }
 
-        static time_t prevHeartbeat = 0;
-        const time_t now = time(nullptr);
-        if (now != prevHeartbeat)
-        {
-            websocketHandler.sendAll("PING:");
-            prevHeartbeat = now;
-        }
-
 #if defined(CORE_DEBUG_LEVEL) && (CORE_DEBUG_LEVEL == ESP_LOG_DEBUG)
         static size_t lastFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         const size_t currentFree = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
