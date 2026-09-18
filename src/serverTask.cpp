@@ -707,7 +707,7 @@ void serverTask(void *param)
         }
 
         static auto lastRun = millis();
-        if (millis() - lastRun > 3000)
+        if (millis() - lastRun > 5000)
         {
             runWiFiMulti();
             lastRun = millis();
