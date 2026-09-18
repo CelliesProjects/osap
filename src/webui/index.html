@@ -850,7 +850,7 @@
 
                 // delete favorite on long press
                 deletebtn.addEventListener("pointerdown", () => {
-                    showToast("Long press to delete", "err");
+                    showToast("Keep pressed to delete", "err");
                     deletePressTimer = setTimeout(() => {
                         deletePressTimer = null;
                         sendWS(`FAVORITE:DELETE:${name}`);
