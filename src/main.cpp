@@ -40,7 +40,7 @@ void runWiFiMulti()
 {
     if (WiFi.status() != WL_CONNECTED)
     {
-        log_v("WiFi not connected! Reconnecting...");
+        log_i("WiFi not connected, reconnecting...");
         wifiMulti.run();
     }
 }
