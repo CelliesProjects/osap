@@ -228,7 +228,7 @@ void searchTask(void *param)
 {
     log_d("searchTask running");
 
-    searchPayload.reserve(1025 * 50);
+    searchPayload.reserve(1024 * 50);
     sanitized.reserve(MAX_SANITIZED_LENGTH * 2);
     searchResult.reserve(4096);
 
