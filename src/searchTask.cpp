@@ -300,7 +300,7 @@ void searchTask(void *param)
         {
             log_w("Search GET failed: %s — retrying", HTTPClient::errorToString(code).c_str());
 
-            msgToClient("MESSAGE:Retrying search...", wsClient);
+            //msgToClient("MESSAGE:Retrying search...", wsClient);
 
             searchHttp.end();
 
