@@ -294,7 +294,21 @@ void searchTask(void *param)
             continue;
         }
 
-        const int code = searchHttp.GET();
+        int code = searchHttp.GET();
+
+        if (code <= 0)
+        {
+            log_w("Search GET failed: %s — retrying", HTTPClient::errorToString(code).c_str());
+
+            //msgToClient("MESSAGE:Retrying search...", wsClient);
+
+            searchHttp.end();
+
+            if (!searchHttp.begin(searchClient, msgBuffer))
+                code = HTTPC_ERROR_CONNECTION_REFUSED;
+            else
+                code = searchHttp.GET();
+        }
 
         // network / transport error
         if (code <= 0)
@@ -316,7 +330,6 @@ void searchTask(void *param)
             continue;
         }
 
-        searchPayload.clear();
         searchPayload = searchHttp.getString();
 
         searchHttp.end();
