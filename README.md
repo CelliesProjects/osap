@@ -14,13 +14,9 @@ A very capable audio player with:
 * Favorites system
 * Mobile friendly interface
 
----
-
 ## OSAP UI video
 
 https://github.com/user-attachments/assets/e57ffc54-28c2-462d-a9a0-3d3f328544cf
-
----
 
 # Hardware
 
