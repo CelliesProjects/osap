@@ -433,11 +433,24 @@
             gap: 24px;
         }
 
+        #streaminfo {
+            position: fixed;
+            left: 20px;
+            top: 55px;
+            z-index: 1200;
+            opacity: 0.6;
+            font-size: 12px;
+        }
+
+        #codecinfo {
+            margin-right: 5px;
+        }
+
         #bufferbar {
             position: fixed;
             left: 15px;
-            top: 12px;
-            width: 80px;
+            top: 42px;
+            width: 95px;
             height: 8px;
             background: #772222;
             border-radius: 4px;
@@ -454,7 +467,7 @@
 
         #aboutLink {
             position: absolute;
-            top: 25px;
+            top: 15px;
             left: 15px;
             cursor: pointer;
             opacity: 0.6;
@@ -673,6 +686,11 @@
         <div id="overlay">
             <div id="aboutLink">About</div>
 
+            <div id="streaminfo">
+                <span id="codecinfo">MP3</span>
+                <span id="bitrateinfo"></span>
+            </div>
+
             <div id="bufferbar">
                 <div id="bufferfill"></div>
             </div>
@@ -693,8 +711,8 @@
                 <div id="progressbar">
                     <div id="progressfill"></div>
                 </div>
-            </div>
 
+            </div>
         </div>
 
         <div id="toastContainer"></div>
@@ -782,6 +800,10 @@
             // empty state
             if (items.length === 0) {
                 container.innerHTML = '<div class="listitem info"><span class="label">Playlist empty</span></div>';
+
+                document.getElementById("codecinfo").textContent = "";
+                document.getElementById("bitrateinfo").textContent = "";
+                document.getElementById("bufferfill").style.width = "0%";
 
                 if (currentIndex >= 0)
                     updateCurrent(currentIndex);
@@ -1288,10 +1310,22 @@
                 const index = Number(raw.slice(8));
 
                 if (!Number.isNaN(index)) {
+                    const oldName = document.getElementById("nowPlayingTitle").textContent;
+
                     currentIndex = index;
                     updateCurrent(index);
+
+                    const newName = document.getElementById("nowPlayingTitle").textContent;
+
+                    // Playlist may have changed without the current item changing.
+                    // Only clear stream info when the actual playing item changed.
+                    if (oldName !== newName) {
+                        document.getElementById("codecinfo").textContent = "";
+                        document.getElementById("bitrateinfo").textContent = "";
+                        document.getElementById("bufferfill").style.width = "0%";
+                    }
                 }
-                document.getElementById("bufferfill").style.width = "0%";
+
                 return;
             }
 
@@ -1309,6 +1343,16 @@
                 const [, fill, size] = raw.split(":");
                 const pct = size ? (Number(fill) * 100) / Number(size) : 0;
                 document.getElementById("bufferfill").style.width = pct + "%";
+                return;
+            }
+
+            else if (raw.startsWith("CODEC:")) {
+                document.getElementById("codecinfo").textContent = raw.slice(6);
+                return;
+            }
+
+            else if (raw.startsWith("BITRATE:")) {
+                document.getElementById("bitrateinfo").textContent = raw.slice(8);
                 return;
             }
 
@@ -1429,6 +1473,8 @@
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
                     document.getElementById("bufferfill").style.width = "0%";
+                    document.getElementById("codecinfo").textContent = "";
+                    document.getElementById("bitrateinfo").textContent = "";
                     resetProgress();
                     showOverlay();
                     disconnect();
