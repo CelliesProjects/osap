@@ -433,10 +433,29 @@
             gap: 24px;
         }
 
+        #bufferbar {
+            position: fixed;
+            left: 15px;
+            top: 12px;
+            width: 80px;
+            height: 8px;
+            background: #772222;
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 1200;
+            opacity: 80%;
+        }
+
+        #bufferfill {
+            width: 0%;
+            height: 100%;
+            background: #559955;
+        }
+
         #aboutLink {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            top: 25px;
+            left: 15px;
             cursor: pointer;
             opacity: 0.6;
         }
@@ -643,6 +662,11 @@
 
         <div id="overlay">
             <div id="aboutLink">About</div>
+
+            <div id="bufferbar">
+                <div id="bufferfill"></div>
+            </div>
+
             <div id="overlayContent">
                 <div id="aboutDialog">
                     <h2>OS Audio Player</h2>
@@ -660,6 +684,7 @@
                     <div id="progressfill"></div>
                 </div>
             </div>
+
         </div>
 
         <div id="toastContainer"></div>
@@ -843,7 +868,7 @@
                 item.appendChild(playbtn);
 
                 deletebtn.addEventListener("click", (e) => {
-                    e.stopPropagation();                    
+                    e.stopPropagation();
                 });
 
                 let deletePressTimer = null;
@@ -1256,6 +1281,7 @@
                     currentIndex = index;
                     updateCurrent(index);
                 }
+                document.getElementById("bufferfill").style.width = "0%";
                 return;
             }
 
@@ -1269,9 +1295,10 @@
                 return;
             }
 
-
             else if (raw.startsWith("BUFFER:")) {
-                // grab and do nothing to keep console log clean
+                const [, fill, size] = raw.split(":");
+                const pct = size ? (Number(fill) * 100) / Number(size) : 0;
+                document.getElementById("bufferfill").style.width = pct + "%";
                 return;
             }
 
@@ -1373,7 +1400,6 @@
                     showToast("Disconnected", "err");
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-
                     resetProgress();
                     showOverlay();
                     ws.refresh();
@@ -1392,7 +1418,7 @@
                 if (document.hidden) {
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-
+                    document.getElementById("bufferfill").style.width = "0%";
                     resetProgress();
                     showOverlay();
                     disconnect();
