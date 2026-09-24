@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/e57ffc54-28c2-462d-a9a0-3d3f328544cf
 
 # Hardware
 
-Minimal component count, development is done with the following hardware:
+Minimal component count, development is done on the following hardware:
 
 * [7x9 cm prototype board](https://aliexpress.com/item/1005007977006793.html) this fits the cases in the `stl` folder
 * [WEMOS S3 MINI](https://www.wemos.cc/en/latest/s3/s3_mini.html)
