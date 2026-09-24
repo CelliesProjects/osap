@@ -1296,11 +1296,9 @@
                 return;
             }
 
-
             else if (raw.startsWith("BUFFER:")) {
                 const [, fill, size] = raw.split(":");
                 const pct = size ? (Number(fill) * 100) / Number(size) : 0;
-
                 document.getElementById("bufferfill").style.width = pct + "%";
                 return;
             }
@@ -1403,7 +1401,6 @@
                     showToast("Disconnected", "err");
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-
                     resetProgress();
                     showOverlay();
                     ws.refresh();
@@ -1422,7 +1419,6 @@
                 if (document.hidden) {
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-
                     document.getElementById("bufferfill").style.width = "0%";
                     resetProgress();
                     showOverlay();
