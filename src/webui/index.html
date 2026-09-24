@@ -433,6 +433,25 @@
             gap: 24px;
         }
 
+        #bufferbar {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 120px;
+            height: 8px;
+            background: #772222;
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 1200;
+        }
+
+        #bufferfill {
+            width: 0%;
+            height: 100%;
+            background: #559955;
+        }
+
+
         #aboutLink {
             position: absolute;
             top: 5px;
@@ -660,7 +679,14 @@
                     <div id="progressfill"></div>
                 </div>
             </div>
+
+            <div id="bufferbar">
+                <div id="bufferfill"></div>
+            </div>
+
         </div>
+
+
 
         <div id="toastContainer"></div>
 
@@ -843,7 +869,7 @@
                 item.appendChild(playbtn);
 
                 deletebtn.addEventListener("click", (e) => {
-                    e.stopPropagation();                    
+                    e.stopPropagation();
                 });
 
                 let deletePressTimer = null;
@@ -1256,6 +1282,7 @@
                     currentIndex = index;
                     updateCurrent(index);
                 }
+                document.getElementById("bufferfill").style.width = "0%";
                 return;
             }
 
@@ -1271,7 +1298,10 @@
 
 
             else if (raw.startsWith("BUFFER:")) {
-                // grab and do nothing to keep console log clean
+                const [, fill, size] = raw.split(":");
+                const pct = size ? (Number(fill) * 100) / Number(size) : 0;
+
+                document.getElementById("bufferfill").style.width = pct + "%";
                 return;
             }
 
@@ -1393,6 +1423,7 @@
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
 
+                    document.getElementById("bufferfill").style.width = "0%";
                     resetProgress();
                     showOverlay();
                     disconnect();
