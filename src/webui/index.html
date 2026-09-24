@@ -435,8 +435,8 @@
 
         #bufferbar {
             position: fixed;
+            left: 60px;
             top: 12px;
-            right: 12px;
             width: 120px;
             height: 8px;
             background: #772222;
@@ -450,7 +450,6 @@
             height: 100%;
             background: #559955;
         }
-
 
         #aboutLink {
             position: absolute;
@@ -662,6 +661,11 @@
 
         <div id="overlay">
             <div id="aboutLink">About</div>
+
+            <div id="bufferbar">
+                <div id="bufferfill"></div>
+            </div>
+
             <div id="overlayContent">
                 <div id="aboutDialog">
                     <h2>OS Audio Player</h2>
@@ -680,13 +684,9 @@
                 </div>
             </div>
 
-            <div id="bufferbar">
-                <div id="bufferfill"></div>
-            </div>
+
 
         </div>
-
-
 
         <div id="toastContainer"></div>
 
