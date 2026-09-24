@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/e57ffc54-28c2-462d-a9a0-3d3f328544cf
 
 Minimal component count, development is done on the following hardware:
 
-* [7x9 cm prototype board](https://aliexpress.com/item/1005007977006793.html) this fits the cases in the `stl` folder
+* [7x9 cm prototype board](https://aliexpress.com/item/1005007977006793.html)
 * [WEMOS S3 MINI](https://www.wemos.cc/en/latest/s3/s3_mini.html)
 * [WEMOS Micro SD card shield](https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html)
 * [Adafruit VS1053 Codec + MicroSD Breakout](https://www.adafruit.com/product/1381)
@@ -32,6 +32,8 @@ Minimal component count, development is done on the following hardware:
 The hardware listed above is the development/reference setup used for OSAP.  
 Other ESP32-S3 boards, SD card interfaces and VS1053-based audio hardware may also be suitable.  
 The software is not inherently tied to the specific boards listed here.
+
+The reference player is build on the above 7x9 cm prototype board that fits the cases in the `stl` folder.
 
 ## Optional status indicator
 
