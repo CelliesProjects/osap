@@ -14,9 +14,44 @@ A very capable audio player with:
 * Favorites system
 * Mobile friendly interface
 
-## OSAP UI demo
+## OSAP UI video
 
 https://github.com/user-attachments/assets/e57ffc54-28c2-462d-a9a0-3d3f328544cf
+
+# Hardware
+
+Minimal component count, development is done on the following hardware:
+
+* [7x9 cm prototype board](https://aliexpress.com/item/1005007977006793.html)
+* [WEMOS S3 MINI](https://www.wemos.cc/en/latest/s3/s3_mini.html)
+* [WEMOS Micro SD card shield](https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html)
+* [Adafruit VS1053 Codec + MicroSD Breakout](https://www.adafruit.com/product/1381)
+* Optional [Adafruit 1.3" I²C OLED](https://www.adafruit.com/product/938) status indicator
+* Web browser as main UI
+
+The hardware listed above is the development/reference setup used for OSAP.  
+Other ESP32-S3 boards, SD card interfaces and VS1053-based audio hardware may also be suitable.  
+The software is not inherently tied to the specific boards listed here.
+
+The reference player is build on the above 7x9 cm prototype board that fits the cases in the `stl` folder.
+
+## Optional status indicator
+
+An optional [Adafruit 1.3" I²C OLED display](https://www.adafruit.com/product/938) can be added for device status information.  
+
+It displays boot progress, connection status and the current IP address.  
+
+**Note:** To keep the player unobtrusive and power efficient, the OLED automatically sleeps after startup.  
+Wake-up is performed using a capacitive touch input, which can be as simple as a GPIO connected to a metal button, screw head or other exposed conductive surface.
+
+## SPI Configuration Notes
+
+The current implementation assumes dedicated SPI buses for SD card and VS1053 access.  
+Shared SPI configurations may compile, partially function, fully function or fail in creative and confusing ways.
+
+Dedicated SPI wiring is the recommended and supported configuration.
+
+---
 
 # Features
 
@@ -69,34 +104,6 @@ Browser cache speedup example:
 
 Up to a 100 requests can be cached this way.  
 If the cache reaches max capacity the eviction policy is to replace the least recently used item.
-
----
-
-# Hardware
-
-Minimal component count:
-
-* [WEMOS S3 MINI](https://www.wemos.cc/en/latest/s3/s3_mini.html)
-* [WEMOS Micro SD card shield](https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html)
-* [Adafruit VS1053 Codec + MicroSD Breakout](https://www.adafruit.com/product/1381)
-* Optional [Adafruit 1.3" I²C OLED](https://www.adafruit.com/product/938) status indicator
-* Web browser as main UI
-
-## Optional status indicator
-
-An optional [Adafruit 1.3" I²C OLED display](https://www.adafruit.com/product/938) can be added for device status information.  
-
-It displays boot progress, connection status and the current IP address.  
-
-**Note:** To keep the player unobtrusive and power efficient, the OLED automatically sleeps after startup.  
-Wake-up is performed using a capacitive touch input, which can be as simple as a GPIO connected to a metal button, screw head or other exposed conductive surface.
-
-## SPI Configuration Notes
-
-The current implementation assumes dedicated SPI buses for SD card and VS1053 access.  
-Shared SPI configurations may compile, partially function, fully function or fail in creative and confusing ways.
-
-Dedicated SPI wiring is the recommended and supported configuration.
 
 ---
 
