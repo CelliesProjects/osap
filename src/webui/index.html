@@ -1313,8 +1313,8 @@
                 const index = Number(raw.slice(8));
 
                 if (!Number.isNaN(index)) {
-                    const oldName = document.getElementById("nowPlayingTitle").textContent;
                     currentIndex = index;
+                    const oldName = document.getElementById("nowPlayingTitle").textContent;
                     updateCurrent(index);
                     const newName = document.getElementById("nowPlayingTitle").textContent;
                     // Playlist may have changed without the current item changing.
