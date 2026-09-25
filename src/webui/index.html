@@ -466,6 +466,19 @@
             background: #559955;
         }
 
+        #currentSong {
+            position: absolute;
+            top: 72px;
+            left: 20px;
+            right: 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         #aboutLink {
             position: absolute;
             top: 12px;
@@ -508,20 +521,20 @@
             color: inherit;
         }
 
-        #nowPlayingTitle {
+        #currentStationContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        #currentStation {
             font-size: 2rem;
             color: white;
             text-align: center;
             overflow-wrap: break-word;
             width: auto;
             opacity: 80%;
-        }
-
-        #overlayNowPlayingRow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
         }
 
         #progressbar {
@@ -696,6 +709,8 @@
                 <div id="bufferfill"></div>
             </div>
 
+            <div id="currentSong"></div>
+
             <div id="overlayContent">
                 <div id="aboutDialog">
                     <h2>OS Audio Player</h2>
@@ -704,9 +719,9 @@
                     <p>Source code: <a href="https://github.com/celliesprojects/osap" target="_blank">GitHub</a></p>
                 </div>
 
-                <div id="overlayNowPlayingRow">
+                <div id="currentStationContainer">
                     <img id="favoriteBtn" src="/icons/addfavorite.svg" alt="Save as Favorite">
-                    <div id="nowPlayingTitle">Connecting...</div>
+                    <div id="currentStation">Connecting...</div>
                 </div>
 
                 <div id="progressbar">
@@ -749,6 +764,7 @@
             document.getElementById("bufferfill").style.width = "0%";
             document.getElementById("codecinfo").textContent = "";
             document.getElementById("bitrateinfo").textContent = "";
+            document.getElementById("currentSong").textContent = "";
         }
 
         function updateCurrent(index) {
@@ -765,7 +781,7 @@
             }
 
             // update overlay title
-            const title = document.getElementById("nowPlayingTitle");
+            const title = document.getElementById("currentStation");
 
             if (index >= 0 && playlistItems[index]) {
                 const item = playlistItems[index];
@@ -1314,9 +1330,9 @@
 
                 if (!Number.isNaN(index)) {
                     currentIndex = index;
-                    const oldName = document.getElementById("nowPlayingTitle").textContent;
+                    const oldName = document.getElementById("currentStation").textContent;
                     updateCurrent(index);
-                    const newName = document.getElementById("nowPlayingTitle").textContent;
+                    const newName = document.getElementById("currentStation").textContent;
                     // Playlist may have changed without the current item changing.
                     // Only clear stream info when the actual playing item changed.
                     if (oldName !== newName)
@@ -1351,6 +1367,11 @@
 
             else if (raw.startsWith("BITRATE:")) {
                 document.getElementById("bitrateinfo").textContent = raw.slice(8);
+                return;
+            }
+
+            else if (raw.startsWith("STREAMTITLE:")) {
+                document.getElementById("currentSong").textContent = raw.slice(12);
                 return;
             }
 
@@ -1450,7 +1471,7 @@
                 if (age > 5000) {
                     console.warn("WS stale");
                     favoriteBtn.style.display = "none";
-                    nowPlayingTitle.textContent = "Connecting...";
+                    currentStation.textContent = "Connecting...";
                     hideCodecInfo();
                     resetProgress();
                     showOverlay();
@@ -1470,7 +1491,7 @@
             document.addEventListener("visibilitychange", () => {
                 if (document.hidden) {
                     favoriteBtn.style.display = "none";
-                    nowPlayingTitle.textContent = "Connecting...";
+                    currentStation.textContent = "Connecting...";
                     hideCodecInfo();
                     resetProgress();
                     showOverlay();
