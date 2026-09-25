@@ -467,8 +467,8 @@
 
         #aboutLink {
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 12px;
+            left: 20px;
             cursor: pointer;
             opacity: 0.6;
         }
@@ -687,7 +687,7 @@
             <div id="aboutLink">About</div>
 
             <div id="streaminfo">
-                <span id="codecinfo">MP3</span>
+                <span id="codecinfo"></span>
                 <span id="bitrateinfo"></span>
             </div>
 
@@ -743,6 +743,11 @@
 
     <!-- display render functions -->
     <script>
+        function resetCodecInfo() {
+            document.getElementById("codecinfo").textContent = "";
+            document.getElementById("bitrateinfo").textContent = "";
+            document.getElementById("bufferfill").style.width = "0%";
+        }
 
         function updateCurrent(index) {
             currentIndex = index;
@@ -800,11 +805,7 @@
             // empty state
             if (items.length === 0) {
                 container.innerHTML = '<div class="listitem info"><span class="label">Playlist empty</span></div>';
-
-                document.getElementById("codecinfo").textContent = "";
-                document.getElementById("bitrateinfo").textContent = "";
-                document.getElementById("bufferfill").style.width = "0%";
-
+                resetCodecInfo();
                 if (currentIndex >= 0)
                     updateCurrent(currentIndex);
 
@@ -1319,11 +1320,8 @@
 
                     // Playlist may have changed without the current item changing.
                     // Only clear stream info when the actual playing item changed.
-                    if (oldName !== newName) {
-                        document.getElementById("codecinfo").textContent = "";
-                        document.getElementById("bitrateinfo").textContent = "";
-                        document.getElementById("bufferfill").style.width = "0%";
-                    }
+                    if (oldName !== newName)
+                        resetCodecInfo();
                 }
 
                 return;
@@ -1472,9 +1470,7 @@
                 if (document.hidden) {
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-                    document.getElementById("bufferfill").style.width = "0%";
-                    document.getElementById("codecinfo").textContent = "";
-                    document.getElementById("bitrateinfo").textContent = "";
+                    resetCodecInfo();
                     resetProgress();
                     showOverlay();
                     disconnect();
