@@ -457,6 +457,7 @@
             overflow: hidden;
             z-index: 1200;
             opacity: 80%;
+            display: none;
         }
 
         #bufferfill {
@@ -468,7 +469,7 @@
         #aboutLink {
             position: absolute;
             top: 12px;
-            left: 20px;
+            left: 15px;
             cursor: pointer;
             opacity: 0.6;
         }
@@ -684,7 +685,7 @@
         </div>
 
         <div id="overlay">
-            <div id="aboutLink">About</div>
+            <div id="aboutLink">About OSAP</div>
 
             <div id="streaminfo">
                 <span id="codecinfo"></span>
@@ -743,10 +744,11 @@
 
     <!-- display render functions -->
     <script>
-        function resetCodecInfo() {
+        function hideCodecInfo() {
+            document.getElementById("bufferbar").style.display = "none";
+            document.getElementById("bufferfill").style.width = "0%";
             document.getElementById("codecinfo").textContent = "";
             document.getElementById("bitrateinfo").textContent = "";
-            document.getElementById("bufferfill").style.width = "0%";
         }
 
         function updateCurrent(index) {
@@ -805,7 +807,7 @@
             // empty state
             if (items.length === 0) {
                 container.innerHTML = '<div class="listitem info"><span class="label">Playlist empty</span></div>';
-                resetCodecInfo();
+                hideCodecInfo();
                 if (currentIndex >= 0)
                     updateCurrent(currentIndex);
 
@@ -1318,7 +1320,7 @@
                     // Playlist may have changed without the current item changing.
                     // Only clear stream info when the actual playing item changed.
                     if (oldName !== newName)
-                        resetCodecInfo();
+                        hideCodecInfo();
                 }
 
                 return;
@@ -1337,6 +1339,7 @@
             else if (raw.startsWith("BUFFER:")) {
                 const [, fill, size] = raw.split(":");
                 const pct = size ? (Number(fill) * 100) / Number(size) : 0;
+                document.getElementById("bufferbar").style.display = "block";
                 document.getElementById("bufferfill").style.width = pct + "%";
                 return;
             }
@@ -1387,7 +1390,7 @@
     <script>
         (() => {
             const host = (window.location.hostname === "" || window.location.hostname === "localhost")
-                ? "192.168.0.249"  // set the device ip here then debug this page without uploading to the device
+                ? "192.168.0.157"  // set the device ip here then debug this page without uploading to the device
                 : window.location.host;
             const WS_URL = `ws://${host}/ws`;
 
@@ -1446,11 +1449,12 @@
                 const age = Date.now() - lastMessageTime;
                 if (age > 5000) {
                     console.warn("WS stale");
-                    showToast("Disconnected", "err");
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
+                    hideCodecInfo();
                     resetProgress();
                     showOverlay();
+                    showToast("Disconnected", "err");
                     ws.refresh();
                 }
             }, 2000);
@@ -1467,7 +1471,7 @@
                 if (document.hidden) {
                     favoriteBtn.style.display = "none";
                     nowPlayingTitle.textContent = "Connecting...";
-                    resetCodecInfo();
+                    hideCodecInfo();
                     resetProgress();
                     showOverlay();
                     disconnect();
