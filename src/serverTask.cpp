@@ -119,6 +119,52 @@ String favoritesToCStruct()
     return out;
 }
 
+static esp_err_t aboutHandler(PsychicRequest *request, PsychicResponse *response)
+{
+    String html;
+    html.reserve(2048);
+
+    html += R"(
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About OS Audio Player</title>
+<style>
+body {
+    font-family: sans-serif;
+    margin: 30px;
+    max-width: 700px;
+}
+</style>
+</head>
+<body>
+<h1>OS Audio Player</h1>
+<p>)";
+
+    html += GIT_VERSION;
+
+    html += R"(</p>
+<p>)";
+
+    html += BUILD_LAST_MODIFIED;
+
+    html += R"(</p>
+<p>
+<a href="https://github.com/celliesprojects/osap" target="_blank">Source code on GitHub</a>
+</p>
+<p><a href="/">Back to OSAP</a></p>
+</body>
+</html>
+)";
+
+    response->setContentType("text/html");
+    response->setContent(html.c_str());
+
+    return response->send();
+}
+
 static esp_err_t favoritesHandler(PsychicRequest *request, PsychicResponse *response)
 {
     String html;
@@ -165,6 +211,7 @@ static void webserverUrlSetup()
         response->setContent(index_start, index_end - index_start);
         return response->send(); });
 
+    server.on("/about", HTTP_GET, aboutHandler);
     server.on("/favorites", HTTP_GET, favoritesHandler);
 
     server.onNotFound([](PsychicRequest *request, PsychicResponse *response)
@@ -683,7 +730,7 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
 
 void serverTask(void *param)
 {
-    server.config.max_uri_handlers = 4;
+    server.config.max_uri_handlers = 5;
     server.config.max_open_sockets = 12;
     server.config.lru_purge_enable = true;
 

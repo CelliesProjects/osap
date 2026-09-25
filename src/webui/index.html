@@ -436,7 +436,7 @@
         #streaminfo {
             position: fixed;
             left: 20px;
-            top: 55px;
+            top: 26px;
             z-index: 1200;
             opacity: 0.6;
             font-size: 12px;
@@ -449,7 +449,7 @@
         #bufferbar {
             position: fixed;
             left: 15px;
-            top: 42px;
+            top: 12px;
             width: 95px;
             height: 8px;
             background: #772222;
@@ -467,8 +467,10 @@
         }
 
         #currentSong {
+            color: inherit;
+            text-decoration: none;
             position: absolute;
-            top: 72px;
+            top: 42px;
             left: 20px;
             right: 20px;
             cursor: pointer;
@@ -477,48 +479,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        #aboutLink {
-            position: absolute;
-            top: 12px;
-            left: 15px;
-            cursor: pointer;
-            opacity: 0.6;
-        }
-
-        #aboutLink:hover {
-            opacity: 1;
-        }
-
-        #aboutDialog {
-            display: none;
-            position: absolute;
-            max-width: 700px;
-            background: #111;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 2px;
-            padding: 10px;
-            text-align: center;
-            z-index: 1300;
-        }
-
-        #aboutDialog.active {
-            display: block;
-        }
-
-        #aboutDialog h2 {
-            margin: 10px;
-        }
-
-        #aboutDialog p {
-            margin: 10px;
-        }
-
-        #aboutDialog a,
-        #aboutDialog a:visited {
-            color: inherit;
         }
 
         #currentStationContainer {
@@ -698,7 +658,6 @@
         </div>
 
         <div id="overlay">
-            <div id="aboutLink">About OSAP</div>
 
             <div id="streaminfo">
                 <span id="codecinfo"></span>
@@ -709,15 +668,9 @@
                 <div id="bufferfill"></div>
             </div>
 
-            <div id="currentSong"></div>
+            <a id="currentSong" target="_blank"></a>
 
             <div id="overlayContent">
-                <div id="aboutDialog">
-                    <h2>OS Audio Player</h2>
-                    <p>{{GIT_VERSION}}</p>
-                    <p>{{BUILD_LAST_MODIFIED}}</p>
-                    <p>Source code: <a href="https://github.com/celliesprojects/osap" target="_blank">GitHub</a></p>
-                </div>
 
                 <div id="currentStationContainer">
                     <img id="favoriteBtn" src="/icons/addfavorite.svg" alt="Save as Favorite">
@@ -764,7 +717,9 @@
             document.getElementById("bufferfill").style.width = "0%";
             document.getElementById("codecinfo").textContent = "";
             document.getElementById("bitrateinfo").textContent = "";
-            document.getElementById("currentSong").textContent = "";
+            const currentSong = document.getElementById("currentSong");
+            currentSong.textContent = "";
+            currentSong.removeAttribute("href");
         }
 
         function updateCurrent(index) {
@@ -1371,7 +1326,12 @@
             }
 
             else if (raw.startsWith("STREAMTITLE:")) {
-                document.getElementById("currentSong").textContent = raw.slice(12);
+                const title = raw.slice(12);
+                const currentSong = document.getElementById("currentSong");
+
+                currentSong.textContent = title;
+                currentSong.href = "https://duckduckgo.com/?q=" + encodeURIComponent(title);
+
                 return;
             }
 
@@ -1680,10 +1640,6 @@
 
         /* click overlay to hide */
         overlay.addEventListener("click", () => {
-            if (aboutDialog.classList.contains("active")) {
-                aboutDialog.classList.remove("active");
-                return;
-            }
             hideOverlay();
         });
 
@@ -1707,21 +1663,6 @@
         infoBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             toggleOverlay();
-        });
-
-        document.getElementById("aboutLink").onclick = (e) => {
-            e.stopPropagation();
-            aboutDialog.classList.add("active");
-        };
-
-        const aboutDialog = document.getElementById("aboutDialog");
-
-        aboutDialog.onclick = () => {
-            aboutDialog.classList.remove("active");
-        };
-
-        aboutDialog.addEventListener("click", (e) => {
-            e.stopPropagation();
         });
 
         document.getElementById("favoriteBtn")
