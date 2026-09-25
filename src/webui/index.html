@@ -436,7 +436,7 @@
         #streaminfo {
             position: fixed;
             left: 20px;
-            top: 55px;
+            top: 26px;
             z-index: 1200;
             opacity: 0.6;
             font-size: 12px;
@@ -449,7 +449,7 @@
         #bufferbar {
             position: fixed;
             left: 15px;
-            top: 42px;
+            top: 12px;
             width: 95px;
             height: 8px;
             background: #772222;
@@ -468,7 +468,7 @@
 
         #currentSong {
             position: absolute;
-            top: 72px;
+            top: 42px;
             left: 20px;
             right: 20px;
             cursor: pointer;
@@ -477,48 +477,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        #aboutLink {
-            position: absolute;
-            top: 12px;
-            left: 15px;
-            cursor: pointer;
-            opacity: 0.6;
-        }
-
-        #aboutLink:hover {
-            opacity: 1;
-        }
-
-        #aboutDialog {
-            display: none;
-            position: absolute;
-            max-width: 700px;
-            background: #111;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 2px;
-            padding: 10px;
-            text-align: center;
-            z-index: 1300;
-        }
-
-        #aboutDialog.active {
-            display: block;
-        }
-
-        #aboutDialog h2 {
-            margin: 10px;
-        }
-
-        #aboutDialog p {
-            margin: 10px;
-        }
-
-        #aboutDialog a,
-        #aboutDialog a:visited {
-            color: inherit;
         }
 
         #currentStationContainer {
@@ -698,7 +656,6 @@
         </div>
 
         <div id="overlay">
-            <div id="aboutLink">About OSAP</div>
 
             <div id="streaminfo">
                 <span id="codecinfo"></span>
@@ -1707,21 +1664,6 @@
         infoBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             toggleOverlay();
-        });
-
-        document.getElementById("aboutLink").onclick = (e) => {
-            e.stopPropagation();
-            aboutDialog.classList.add("active");
-        };
-
-        const aboutDialog = document.getElementById("aboutDialog");
-
-        aboutDialog.onclick = () => {
-            aboutDialog.classList.remove("active");
-        };
-
-        aboutDialog.addEventListener("click", (e) => {
-            e.stopPropagation();
         });
 
         document.getElementById("favoriteBtn")
