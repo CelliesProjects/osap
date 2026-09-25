@@ -212,7 +212,6 @@ static void webserverUrlSetup()
         return response->send(); });
 
     server.on("/about", HTTP_GET, aboutHandler);
-
     server.on("/favorites", HTTP_GET, favoritesHandler);
 
     server.onNotFound([](PsychicRequest *request, PsychicResponse *response)
