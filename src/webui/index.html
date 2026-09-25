@@ -1312,12 +1312,9 @@
 
                 if (!Number.isNaN(index)) {
                     const oldName = document.getElementById("nowPlayingTitle").textContent;
-
                     currentIndex = index;
                     updateCurrent(index);
-
                     const newName = document.getElementById("nowPlayingTitle").textContent;
-
                     // Playlist may have changed without the current item changing.
                     // Only clear stream info when the actual playing item changed.
                     if (oldName !== newName)
