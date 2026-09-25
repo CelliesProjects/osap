@@ -669,12 +669,6 @@
             <div id="currentSong"></div>
 
             <div id="overlayContent">
-                <div id="aboutDialog">
-                    <h2>OS Audio Player</h2>
-                    <p>{{GIT_VERSION}}</p>
-                    <p>{{BUILD_LAST_MODIFIED}}</p>
-                    <p>Source code: <a href="https://github.com/celliesprojects/osap" target="_blank">GitHub</a></p>
-                </div>
 
                 <div id="currentStationContainer">
                     <img id="favoriteBtn" src="/icons/addfavorite.svg" alt="Save as Favorite">
@@ -1637,10 +1631,6 @@
 
         /* click overlay to hide */
         overlay.addEventListener("click", () => {
-            if (aboutDialog.classList.contains("active")) {
-                aboutDialog.classList.remove("active");
-                return;
-            }
             hideOverlay();
         });
 
