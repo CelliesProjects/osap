@@ -467,6 +467,8 @@
         }
 
         #currentSong {
+            color: inherit;
+            text-decoration: none;
             position: absolute;
             top: 42px;
             left: 20px;
@@ -666,7 +668,7 @@
                 <div id="bufferfill"></div>
             </div>
 
-            <div id="currentSong"></div>
+            <a id="currentSong" target="_blank"></a>
 
             <div id="overlayContent">
 
@@ -715,7 +717,9 @@
             document.getElementById("bufferfill").style.width = "0%";
             document.getElementById("codecinfo").textContent = "";
             document.getElementById("bitrateinfo").textContent = "";
-            document.getElementById("currentSong").textContent = "";
+            const currentSong = document.getElementById("currentSong");
+            currentSong.textContent = "";
+            currentSong.removeAttribute("href");
         }
 
         function updateCurrent(index) {
@@ -1322,7 +1326,13 @@
             }
 
             else if (raw.startsWith("STREAMTITLE:")) {
-                document.getElementById("currentSong").textContent = raw.slice(12);
+                const title = raw.slice(12);
+                const currentSong = document.getElementById("currentSong");
+
+                currentSong.textContent = title;
+                currentSong.href =
+                    "https://duckduckgo.com/?q=" + encodeURIComponent(title);
+
                 return;
             }
 
