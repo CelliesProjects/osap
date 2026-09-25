@@ -523,6 +523,8 @@ static void wsOpenHandler(PsychicWebSocketClient *client)
             PlayerCmdType::SEND_VOLUME,
             PlayerCmdType::SEND_PLAYLIST,
             PlayerCmdType::SEND_STREAMTITLE,
+            PlayerCmdType::SEND_CODEC,
+            PlayerCmdType::SEND_BITRATE,
     };
 
     for (const auto &req : requests)
