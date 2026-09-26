@@ -16,7 +16,7 @@ A very capable audio player with:
 
 ## OSAP UI video
 
-https://github.com/user-attachments/assets/e57ffc54-28c2-462d-a9a0-3d3f328544cf
+https://github.com/user-attachments/assets/1be9de44-ba12-41da-8240-82e3cfe4a38c
 
 # Hardware
 
