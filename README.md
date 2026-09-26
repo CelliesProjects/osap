@@ -18,7 +18,11 @@ A very capable audio player with:
 
 https://github.com/user-attachments/assets/1be9de44-ba12-41da-8240-82e3cfe4a38c
 
-# Hardware
+## Finished player
+
+![assembled case](https://github.com/user-attachments/assets/cad1e23c-928f-412c-a2c9-b218a6733b2b)
+
+# Required hardware
 
 Minimal component count, development is done on the following hardware:
 
@@ -27,6 +31,7 @@ Minimal component count, development is done on the following hardware:
 * [WEMOS Micro SD card shield](https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html)
 * [Adafruit VS1053 Codec + MicroSD Breakout](https://www.adafruit.com/product/1381)
 * Optional [Adafruit 1.3" I²C OLED](https://www.adafruit.com/product/938) status indicator
+* To connect the OLED a [STEMMA QT header cable](https://www.adafruit.com/product/4209)
 * Web browser as main UI
 
 The hardware listed above is the development/reference setup used for OSAP.  
@@ -130,7 +135,7 @@ If all assets are installed, PlatformIO will start compiling and flash your play
 
 ---
 
-# Building
+# Building the firmware
 
 ## Required secrets file
 
@@ -255,14 +260,40 @@ All frontend resources are compiled into the player UI:
 
 ---
 
-# Project Status
+# Building the hardware
 
-* Hardware is feature complete, tested and stable
-* No enclosure yet
+Most of the required parts.  
 
-Current focus:
+![parts](https://github.com/user-attachments/assets/31301ccb-9418-4499-8fc9-ca4de992bb33)
 
-* Designing a 3D printed hardware enclosure
+To stack the SD board on top of the CPU board, 3 pieces of [8 pin single row headers](https://aliexpress.com/item/1005011936791979.html) are required.
 
-![Dev hardware](https://github.com/user-attachments/assets/ee85d075-a17c-4fb4-829e-c1862e4d4326)
+Also an additional countersunk M6 20-25mm long bolt with a fitting nut and a cable lug are required to build the example cases.
+
+---
+
+Possible parts layout, this layout will fit the cases in the `stl` folder and both cables and SD card are accesible.  
+In this layout, the SD board is stacked on top of the CPU board and the default pins are used to save on wiring and assembly time.
+
+![layout](https://github.com/user-attachments/assets/420de4b4-5ddb-4722-9084-bbae71173496)
+
+---
+
+After wiring up and smoke testing.  
+Connecting the case.
+
+![case inside](https://github.com/user-attachments/assets/06b459cd-cbbc-42ec-8dfa-848d1355b924)
+
+---
+
+Testing touch and OLED.
+
+![touch and oled](https://github.com/user-attachments/assets/801e0b4d-df0b-4865-9ae5-f9f5089137b4)
+
+---
+
+The assembled player.
+
+![assembled case](https://github.com/user-attachments/assets/cad1e23c-928f-412c-a2c9-b218a6733b2b)
+
 
