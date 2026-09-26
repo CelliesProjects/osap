@@ -710,17 +710,6 @@ static esp_err_t wsFrameHandler(PsychicWebSocketRequest *request, httpd_ws_frame
     else if (strncmp(payload, "OSAM:HELLO", 10) == 0)
     {
         log_i("osam client connected");
-        PlayerCmd cmd{};
-        cmd.client = websocketHandler.getClient(request->client()->socket());
-
-        cmd.type = PlayerCmdType::SEND_CODEC;
-        if (xQueueSend(playerQueue, &cmd, 0) != pdTRUE)
-            broadcastPlayerBusy();
-
-        cmd.type = PlayerCmdType::SEND_BITRATE;
-        if (xQueueSend(playerQueue, &cmd, 0) != pdTRUE)
-            broadcastPlayerBusy();
-
         return ESP_OK;
     }
 
