@@ -62,7 +62,6 @@ Dedicated SPI wiring is the recommended and supported configuration.
 
 ## Privacy first
 
-* No cloud dependency
 * No accounts
 * No telemetry
 * No phone app install
@@ -249,7 +248,6 @@ All frontend resources are compiled into the player UI:
 * Vanilla HTML/CSS/JavaScript is used for the interface and application logic
 * SVG icons from Google Fonts are inlined into the generated HTML during build - [Apache 2.0](https://github.com/google/material-design-icons?tab=Apache-2.0-1-ov-file#readme)
 * [Reconnecting WebSocket](https://github.com/joewalnes/reconnecting-websocket) is included (minified) in the UI - [MIT](https://github.com/joewalnes/reconnecting-websocket?tab=MIT-1-ov-file)
-* No frameworks, no runtime dependencies, no tracked downloads
 
 ---
 
