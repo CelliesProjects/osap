@@ -64,7 +64,7 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 {
     if (cachedFavorites.isEmpty())
     {
-        log_i("cache miss, rebuilding favorites");
+        log_i("favorites cache empty, rebuilding");
 
         cachedFavorites = "FAVORITES:\n";
 
