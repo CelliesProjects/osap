@@ -98,17 +98,10 @@ This allows the same device to be used with different network setups such as a h
 ## UI Performance
 
 Multiple simultaneous clients are supported and kept in sync with the player state.  
+SD requests are quite expensive and are handled async and cached to keep the UI responsive.  
 
-File browser requests are handled async and cached if it takes over 100 ms to process a folder.  
-
-Browser cache speedup example:
-
-* The handling of 100+ SD card items takes about ~2000ms on the first request
-* Because the operation took more than 100 ms to complete the response is cached   
-* Once cached the same folder takes only 3-8 ms to complete
-
-Up to a 100 requests can be cached this way.  
-If the cache reaches max capacity the eviction policy is to replace the least recently used item.
+- File browser requests are cached if the response takes more than 100 ms to build.  
+- The favorites folder is cached on every mutation.  
 
 ---
 
