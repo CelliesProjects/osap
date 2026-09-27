@@ -154,7 +154,7 @@ void browserTask(void *param)
         if (auto *item = findCached())
         {
             serveFromCache(item);
-            log_i("cache hit: '%s', %d ms", req.path, millis() - startMS);
+            log_v("cache hit: '%s', %d ms", req.path, millis() - startMS);
             continue;
         }
 
@@ -173,7 +173,7 @@ void browserTask(void *param)
         if (duration < CACHE_THRESHOLD_MS || !client)
             continue;
 
-        log_i("caching '%s', %d ms, %u bytes", req.path, duration, cacheBuffer.length());
+        log_v("caching '%s', %d ms, %u bytes", req.path, duration, cacheBuffer.length());
 
         cacheRequest();
     }
