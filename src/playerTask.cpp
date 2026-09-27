@@ -573,7 +573,7 @@ static void handleSaveFavorite(const PlayerCmd &cmd)
     cachedFavorites.clear();
 
     FavoritesRequest req{};
-    req.client = nullptr; // providing no client broadcast to all
+    req.client = nullptr; // providing no client broadcasts to all
 
     if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
         msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
@@ -587,7 +587,7 @@ static void handleDeleteFavorite(const PlayerCmd &cmd)
     cachedFavorites.clear();
 
     FavoritesRequest req{};
-    req.client = nullptr; // providing no client broadcast to all
+    req.client = nullptr; // providing no client broadcasts to all
 
     if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
         msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
