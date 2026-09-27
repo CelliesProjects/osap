@@ -12,3 +12,5 @@ extern PsychicWebSocketHandler websocketHandler;
 extern const char *FAVORITES_DIR;
 extern QueueHandle_t favoritesQueue;
 extern SemaphoreHandle_t sdMutex;
+
+String cachedFavorites;

@@ -570,6 +570,8 @@ static void handleSaveFavorite(const PlayerCmd &cmd)
 
     msgToClient("MESSAGE:Saved as favorite", cmd.client);
 
+    cachedFavorites.clear();
+
     FavoritesRequest req{};
     req.client = nullptr; // nullptr triggers a broadcast to all clients
 
@@ -698,15 +700,19 @@ static void handlePlayerCommand(const PlayerCmd &cmd)
     {
 
     case PlayerCmdType::DELETE_FAVORITE:
-        if (deleteFavorite(cmd))
-        {
-            FavoritesRequest req{};
-            req.client = nullptr; // nullptr triggers a broadcast to all clients
+    {
+        if (!deleteFavorite(cmd))
+            break;
+            
+        cachedFavorites.clear();
 
-            if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
-                msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
-        }
+        FavoritesRequest req{};
+        req.client = nullptr; // no client broadcast to all clients
+
+        if (xQueueSend(favoritesQueue, &req, 0) != pdTRUE)
+            msgToClient(ERROR_FAVORITES_BUSY, cmd.client);
         break;
+    }
 
     case PlayerCmdType::SAVE_FAVORITE:
         handleSaveFavorite(cmd);

@@ -28,6 +28,8 @@ extern const char *FAVORITES_DIR;
 extern const char *ERROR_PLAYER_BUSY;
 extern const char *ERROR_FAVORITES_BUSY;
 
+extern String cachedFavorites;
+
 extern void broadcastPlayerBusy();
 
 extern SystemState systemState;

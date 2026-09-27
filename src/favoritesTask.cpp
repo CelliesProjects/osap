@@ -1,7 +1,6 @@
 #include "favoritesTask.hpp"
 
 static FavoritesRequest req;
-static String webSocketMsg;
 
 static void processItems(File &dir)
 {
@@ -47,8 +46,8 @@ static void processItems(File &dir)
 
         if (name.length())
         {
-            webSocketMsg += name;
-            webSocketMsg += "\n";
+            cachedFavorites += name;
+            cachedFavorites += "\n";
         }
     }
 }
@@ -56,40 +55,46 @@ static void processItems(File &dir)
 static void sendWS(PsychicWebSocketClient *client)
 {
     if (client)
-        msgToClient(webSocketMsg.c_str(), client);
+        msgToClient(cachedFavorites.c_str(), client);
     else
-        websocketHandler.sendAll(webSocketMsg.c_str());
+        websocketHandler.sendAll(cachedFavorites.c_str());
 }
 
 static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 {
-    webSocketMsg = "FAVORITES:\n";
-
-    File dir;
-
+    if (cachedFavorites.isEmpty())
     {
-        ScopedMutex lock(sdMutex);
-        dir = SD.open(FAVORITES_DIR);
+        log_i("cache miss, rebuilding favorites");
+
+        cachedFavorites = "FAVORITES:\n";
+
+        File dir;
+
+        {
+            ScopedMutex lock(sdMutex);
+            dir = SD.open(FAVORITES_DIR);
+        }
+
+        if (!dir || !dir.isDirectory())
+        {
+            cachedFavorites.clear();
+            websocketHandler.sendAll("ERROR:Could not open favorites");
+            return;
+        }
+
+        processItems(dir);
+
+        dir.close();
+
+        log_d("cachedFavorites size: %d", cachedFavorites.length());
     }
-
-    if (!dir || !dir.isDirectory())
-    {
-        websocketHandler.sendAll("ERROR:Could not open favorites");
-        return;
-    }
-
-    processItems(dir);
-
-    dir.close();
-
-    log_d("favorites webSocketMsg size: %d", webSocketMsg.length());
 
     sendWS(client);
 }
 
 void favoritesTask(void *param)
 {
-    webSocketMsg.reserve(WS_MSG_RESERVED);
+    cachedFavorites.reserve(WS_MSG_RESERVED);
 
     while (1)
     {
@@ -98,6 +103,10 @@ void favoritesTask(void *param)
         if (xQueueReceive(favoritesQueue, &req, portMAX_DELAY) != pdTRUE)
             continue;
 
+        const auto startMS = millis();
+
         sendFavorites(req.client);
+
+        log_i("favorites : %d ms", millis() - startMS);
     }
 }
