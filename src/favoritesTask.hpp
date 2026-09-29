@@ -5,7 +5,7 @@
 #include "FavoritesRequest.hpp"
 #include "ScopedMutex.hpp"
 
-constexpr int WS_MSG_RESERVED = 4096;
+constexpr int FAVORITES_RESERVED = 4096;
 
 extern void msgToClient(const char *msg, PsychicWebSocketClient *c);
 extern PsychicWebSocketHandler websocketHandler;

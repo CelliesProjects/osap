@@ -93,7 +93,7 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 
 void favoritesTask(void *param)
 {
-    cachedFavorites.reserve(WS_MSG_RESERVED);
+    cachedFavorites.reserve(FAVORITES_RESERVED);
 
     while (1)
     {
