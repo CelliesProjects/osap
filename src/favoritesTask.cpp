@@ -4,6 +4,8 @@ static FavoritesRequest req;
 
 static void processItems(File &dir)
 {
+    cachedFavorites = "FAVORITES:\n";
+
     while (true)
     {
         File file;
@@ -66,8 +68,6 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
     {
         log_i("favorites cache empty, rebuilding");
 
-        cachedFavorites = "FAVORITES:\n";
-
         File dir;
 
         {
@@ -77,7 +77,6 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 
         if (!dir || !dir.isDirectory())
         {
-            cachedFavorites.clear();
             websocketHandler.sendAll("ERROR:Could not open favorites");
             return;
         }
@@ -107,6 +106,6 @@ void favoritesTask(void *param)
 
         sendFavorites(req.client);
 
-        log_i("favorites : %d ms", millis() - startMS);
+        log_i("favorites: %d ms", millis() - startMS);
     }
 }
