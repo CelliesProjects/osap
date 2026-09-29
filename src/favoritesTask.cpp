@@ -77,7 +77,7 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 
         if (!dir || !dir.isDirectory())
         {
-            websocketHandler.sendAll("ERROR:Could not open favorites");
+            msgToClient("ERROR:Could not open favorites", client);
             return;
         }
 
