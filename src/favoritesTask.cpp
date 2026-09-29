@@ -85,7 +85,7 @@ static void sendFavorites(PsychicWebSocketClient *client = nullptr)
 
         dir.close();
 
-        log_d("cachedFavorites size: %d", cachedFavorites.length());
+        log_d("favorites cached size: %d", cachedFavorites.length());
     }
 
     sendWS(client);
