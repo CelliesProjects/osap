@@ -88,6 +88,8 @@ static void stopPlayback()
 
 static bool playIndex(int index, size_t offset = 0)
 {
+    streamTitle.clear();
+    
     if (index < 0 || index >= playList.size())
     {
         log_e("invalid index");
